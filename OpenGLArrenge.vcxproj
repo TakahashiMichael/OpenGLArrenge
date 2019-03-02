@@ -133,6 +133,7 @@
     <Text Include="Res\memo\FunctionList.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scr\Geometry.h" />
     <ClInclude Include="Scr\GLFWEW.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
