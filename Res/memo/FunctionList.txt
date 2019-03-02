@@ -1,0 +1,19 @@
+関数のメモ
+
+◎GLFW
+void glfwSetErrorCallback(void(*));			//エラーコールバック関数を登録する.初期化前に登録する
+bool glfwInit();							//GLFWの初期化
+GLFWwindow* glfwCreateWindow(int,int,const char* ,int,int,);//ウィンドウの設定,
+void glfwTerminate();							//終了処理.
+void glfwMaakeContextCurrent(GLFWwindow*);		//指定したウィンドウに対応するOpenglコンテキストを描画対象に設定する.
+
+bool glfwWindowShouldClose(GLFWwindow*);			//引数のwindowが閉じるべきか調べる.閉じるべきならreturn true;
+
+void glClearColor();		//glCrear関数で実行する色を設定する.
+void glClear(glenum...);	//関数例,GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT 塗りつぶし実行
+
+◎GLEW
+//ものすごくやることが多い
+//初期化関係
+glewInit()	//初期化戻り値に GLEW_OK が帰ってきたら成功.
+
