@@ -186,7 +186,7 @@ int main() {
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(vao);
-		glDrawArrays(GL_LINE_LOOP,0,sizeof(vertices)/sizeof(vertices[0]));
+		glDrawArrays(GL_TRIANGLES,0,sizeof(vertices)/sizeof(vertices[0]));
 
 		window.SwapBuffers();
 	}

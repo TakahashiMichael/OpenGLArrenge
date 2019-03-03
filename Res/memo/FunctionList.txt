@@ -58,3 +58,22 @@ glGenVertexArrays(int, &GLuint vao);		//作成.
 glBindVertexArray(GLuint vao);				//VAO割り当て
 glEnableVertexAttribArray(int);				//指定したバインディングポイントを有効にする
 glVertexAttribPointer();
+
+
+GLuint glCreateShader(enum shaderType);//シェーダオブジェクトを追加
+glShaderSource(GLuint shaderid,cosnt GLchar*,nullptr);
+glCompileShader(GLuint shaderid);
+glGetShaderiv(GLuint shader,enum,GLint*);
+
+glDeleteShader(shader);
+
+
+
+//プリミティブのenum
+GL_POINTS
+GL_LINES
+GL_LINE_STRIP
+GL_LINE_LOOP
+GL_TRIANGLES
+GL_TRIANGLE_STRIP
+GL_TRIANGLE_FAN
