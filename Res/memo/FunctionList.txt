@@ -59,7 +59,7 @@ glBindVertexArray(GLuint vao);				//VAO割り当て
 glEnableVertexAttribArray(int);				//指定したバインディングポイントを有効にする
 glVertexAttribPointer();
 
-
+//シェーダー関連
 GLuint glCreateShader(enum shaderType);//シェーダオブジェクトを追加
 glShaderSource(GLuint shaderid,cosnt GLchar*,nullptr);
 glCompileShader(GLuint shaderid);
@@ -77,3 +77,10 @@ GL_LINE_LOOP
 GL_TRIANGLES
 GL_TRIANGLE_STRIP
 GL_TRIANGLE_FAN
+
+
+
+◎glm の関数
+//行列系
+glm::mat4x4 glm::perspective(float radian,float ,float,float);　//透視投影 Yの視野角 アスペクト比(X/Y) 3,4引数が視点から角錐台の天井及びそこまでの距離.
+glm::mat4x4 glm::lookAt(glm::vec3,glm::vec3,glm::vec3);//

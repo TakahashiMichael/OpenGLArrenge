@@ -123,6 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Scr\Debug.cpp" />
     <ClCompile Include="Scr\GLFWEW.cpp" />
     <ClCompile Include="Scr\Main.cpp" />
   </ItemGroup>
@@ -133,6 +134,7 @@
     <Text Include="Res\memo\FunctionList.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Scr\Debug.h" />
     <ClInclude Include="Scr\Geometry.h" />
     <ClInclude Include="Scr\GLFWEW.h" />
   </ItemGroup>
