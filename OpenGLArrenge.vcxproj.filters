@@ -39,6 +39,9 @@
     <ClCompile Include="Scr\OffscreenBuffer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Scr\UniformBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -46,6 +49,18 @@
       <Filter>リソース ファイル\Shader</Filter>
     </None>
     <None Include="Res\Shader\Simple.frag">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\Shader\ColorFilter.vert">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\Shader\ColorFilter.frag">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\Shader\Posterization.vert">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\Shader\Posterization.frag">
       <Filter>リソース ファイル\Shader</Filter>
     </None>
   </ItemGroup>
@@ -74,6 +89,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Scr\OffscreenBuffer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scr\UniformBuffer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

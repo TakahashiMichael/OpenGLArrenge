@@ -8,8 +8,12 @@
 #define FILENAME_TGA_BUCK "Res/Textrue/TitleBack.tga"
 
 #define FILENAME_SHADER_VERT_SIMPLE "Res/Shader/Simple.vert"
+#define FILENAME_SHADER_VERT_COLORFILTER "Res/Shader/ColorFilter.vert"
+#define FILENAME_SHADER_VERT_POSTER "Res/Shader/Posterization.vert"
 
 #define FILENAME_SHADER_FRAG_SIMPLE "Res/Shader/Simple.frag"
+#define FILENAME_SHADER_FRAG_COLORFILTER "Res/Shader/ColorFilter.frag"
+#define FILENAME_SHADER_FRAG_POSTER "Res/Shader/Posterization.frag"
 
 
 

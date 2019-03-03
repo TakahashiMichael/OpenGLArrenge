@@ -9,7 +9,7 @@
 #include <vector>
 #include "Shader.h"
 #include "OffscreenBuffer.h"
-
+#include "UniformBuffer.h"
 
 const Vertex vertices[] = {
 { {-0.5f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
@@ -46,10 +46,44 @@ const GLuint indices[] =
 struct VertexData
 {
 	glm::mat4 matMVP;
-	glm::vec4 lightPosition;
-	glm::vec4 lightColor;
-	glm::vec4 ambientColor;
 };
+const int maxLightCount = 4; ///< ライトの数.
+
+/**
+* ライトデータ(点光源).
+*/
+struct PointLight
+{
+	glm::vec4 position; ///< 座標(ワールド座標系).
+	glm::vec4 color; ///< 明るさ.
+};
+
+/**
+* ライティングパラメータをシェーダに転送するための構造体.
+*/
+struct LightData
+{
+	glm::vec4 ambientColor; ///< 環境光.
+	PointLight light[maxLightCount]; ///< ライトのリスト.
+};
+
+/**
+* ポストエフェクトデータをシェーダに転送するための構造体.
+*/
+struct PostEffectData
+{
+	glm::mat4x4 matColor; ///< 色変換行列.
+};
+
+
+/// バインディングポイント.
+enum BindingPoint
+{
+	BINDINGPOINT_VERTEXDATA, ///< 頂点シェーダ用パラメータのバインディングポイント.
+	BINDINGPOINT_LIGHTDATA, ///< ライティングパラメータ用のバインディングポイント.
+	BINDINGPOINT_POSTEFFECTDATA, ///< ポストエフェクトパラメータ用のバインディングポイント.
+};
+
 
 
 //部分描画データ.
@@ -158,23 +192,6 @@ GLuint CreateVAO(GLuint vbo ,GLuint ibo)
 	return vao;
 }
 
-/**
-* Uniform Block Objectを作成する.
-*
-* @param size Uniform Blockのサイズ.
-* @param data Uniform Blockに転送するデータへのポインタ.
-*
-* @return 作成したUBO.
-*/
-GLuint CreateUBO(GLsizeiptr size,const GLvoid* data =nullptr )
-{
-	GLuint ubo;
-	glGenBuffers(1,&ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER,ubo);
-	glBufferData(GL_UNIFORM_BUFFER,size,data,GL_STREAM_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER,0);
-	return ubo;
-}
 
 
 
@@ -192,18 +209,24 @@ int main() {
 	const GLuint vbo = CreateVBO(sizeof(vertices),vertices);
 	const GLuint ibo = CreateIBO(sizeof(indices),indices);
 	const GLuint vao = CreateVAO(vbo,ibo);
-	const GLuint ubo = CreateUBO(sizeof(VertexData));
-	const GLuint shaderProgram = Shader::CreateProgramFromFile(FILENAME_SHADER_VERT_SIMPLE,FILENAME_SHADER_FRAG_SIMPLE);
-	if (!vbo || !ibo || !vao || !ubo || !shaderProgram) {
+	const UniformBufferPtr uboVertex = UniformBuffer::Create(
+		sizeof(VertexData), BINDINGPOINT_VERTEXDATA, "VertexData");
+	const UniformBufferPtr uboLight = UniformBuffer::Create(
+		sizeof(LightData),BINDINGPOINT_LIGHTDATA,"LightData");
+	const UniformBufferPtr uboPostEffect = UniformBuffer::Create(
+		sizeof(PostEffectData),BINDINGPOINT_POSTEFFECTDATA,"PostEffectData");
+	const Shader::ProgramPtr progSimple =
+		Shader::Program::Create(FILENAME_SHADER_VERT_SIMPLE,FILENAME_SHADER_FRAG_SIMPLE);
+	const Shader::ProgramPtr progColorFilter =
+		Shader::Program::Create(FILENAME_SHADER_VERT_COLORFILTER,FILENAME_SHADER_FRAG_COLORFILTER);
+	const Shader::ProgramPtr progPosterFilter = 
+		Shader::Program::Create(FILENAME_SHADER_VERT_POSTER,FILENAME_SHADER_FRAG_POSTER);
+	if (!vbo || !ibo || !vao || !uboVertex || !uboLight || !uboPostEffect || !progSimple || !progColorFilter || !progPosterFilter) {
 		return 1;
 	}
-	//locの取得のところがこれ.
-	const GLuint uboIndex = glGetUniformBlockIndex(shaderProgram, "VertexData");
-	if (uboIndex == GL_INVALID_INDEX) {
-		return 1;
-		
-	}
-	glUniformBlockBinding(shaderProgram, uboIndex, 0);
+	progSimple->UniformBlockBinding(*uboVertex);
+	progSimple->UniformBlockBinding(*uboLight);
+	progColorFilter->UniformBlockBinding(*uboPostEffect);
 
 
 	TexturePtr tex = Texture::LoadFromFile(FILENAME_BMP_GEAR);
@@ -211,8 +234,6 @@ int main() {
 		return 1;
 		
 	}
-	//テクスチャのサンプラーの位置を取得する.
-	const GLint colorSamplerLoc = glGetUniformLocation(shaderProgram,"texColor");
 
 
 
@@ -229,7 +250,7 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER,offscreen->GetFrameBuffer());
 		window.Clear();
 		glEnable(GL_DEPTH_TEST);
-		glUseProgram(shaderProgram);
+		progSimple->UseProgram();
 
 		if (persAngle<=1.0f) {
 			flag = true;
@@ -252,51 +273,63 @@ int main() {
 			glm::lookAt(glm::vec3(2,3,3),glm::vec3(0),glm::vec3(0,1,0));
 		VertexData vertexData;
 		vertexData.matMVP = matProj * matView;
-		vertexData.lightPosition = glm::vec4(1, 1, 1, 1);
-		vertexData.lightColor = glm::vec4(2, 2, 2, 1);
-		vertexData.ambientColor = glm::vec4(0.05f, 0.1f, 0.2f, 1);
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
-		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(VertexData), &vertexData);
+		uboVertex->BufferSubdata(&vertexData);
+
+		LightData lightData;
+		lightData.ambientColor = glm::vec4(0.05f, 0.1f, 0.2f, 1);
+		lightData.light[0].position = glm::vec4(1, 1, 1, 1);
+		lightData.light[0].color = glm::vec4(2, 2, 2, 1);
+		lightData.light[1].position = glm::vec4(-0.2f, 0, 0.6f, 1);
+		lightData.light[1].color = glm::vec4(0.125f, 0.125f, 0.05f, 1);
+		uboLight->BufferSubdata(&lightData);
 
 
-		//サンプラーにテクスチャデータを転送.
-		if (colorSamplerLoc >= 0) {
-			glUniform1i(colorSamplerLoc, 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, tex->Id());
-			//補足,使わないテクスチャはいちいち割り当てを解除した方がいいそう
-		}
+		//
+		progSimple->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,tex->Id());
 
 
+		//オフスクリーンバッファへ描画する.
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, renderingParts[0].size,
 			GL_UNSIGNED_INT, renderingParts[0].offset);
 
 
-		//デフォルトのフレームバッファーを設定する/
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClearColor(0.5f, 0.3f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		if (colorSamplerLoc >= 0) {
-			glBindTexture(GL_TEXTURE_2D, offscreen->GetTexture());
-			
-		}
 
-		vertexData = {};
-		vertexData.matMVP = glm::mat4x4(1);
-		vertexData.ambientColor = glm::vec4(1, 1, 1, 1);
-		glBufferSubData(GL_UNIFORM_BUFFER,0,sizeof(VertexData),&vertexData);
+		//progSimple->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
 
+		//vertexData = {};
+		//vertexData.matMVP = glm::mat4x4(1);
+		//uboVertex->BufferSubdata(&vertexData);
 
+		//lightData = {};
+		//lightData.ambientColor = glm::vec4(1);
+		//uboLight->BufferSubdata(&lightData);
+
+		progColorFilter->UseProgram();
+		progColorFilter->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
+
+		PostEffectData postEffect;
+		postEffect.matColor[0] = glm::vec4(0.393f, 0.349f, 0.272f, 0);
+		postEffect.matColor[1] = glm::vec4(0.769f, 0.686f, 0.534f, 0);
+		postEffect.matColor[2] = glm::vec4(0.189f, 0.168f, 0.131f, 0);
+		postEffect.matColor[3] = glm::vec4(0, 0, 0, 1);
+		uboPostEffect->BufferSubdata(&postEffect);
+
+		progPosterFilter->UseProgram();
+		progPosterFilter->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
+
+		//オフスクリーンバッファを使用して画面の描画
 		glDrawElements(
 		GL_TRIANGLES, renderingParts[1].size,
 		GL_UNSIGNED_INT, renderingParts[1].offset);
 
-
+		//バッファーの入れ替え
 		window.SwapBuffers();
 	}
-	glDeleteBuffers(1,&ubo);
-	glDeleteProgram(shaderProgram);
+	//vaoの削除
 	glDeleteVertexArrays(1,&vao);
 
 	return 0;

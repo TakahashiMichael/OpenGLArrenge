@@ -133,9 +133,14 @@
     <ClCompile Include="Scr\OffscreenBuffer.cpp" />
     <ClCompile Include="Scr\Shader.cpp" />
     <ClCompile Include="Scr\Texture.cpp" />
+    <ClCompile Include="Scr\UniformBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Res\Shader\ColorFilter.frag" />
+    <None Include="Res\Shader\ColorFilter.vert" />
+    <None Include="Res\Shader\Posterization.frag" />
+    <None Include="Res\Shader\Posterization.vert" />
     <None Include="Res\Shader\Simple.frag" />
     <None Include="Res\Shader\Simple.vert" />
   </ItemGroup>
@@ -150,6 +155,7 @@
     <ClInclude Include="Scr\OffscreenBuffer.h" />
     <ClInclude Include="Scr\Shader.h" />
     <ClInclude Include="Scr\Texture.h" />
+    <ClInclude Include="Scr\UniformBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
