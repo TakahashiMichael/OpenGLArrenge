@@ -1,66 +1,66 @@
-�֐��̃���
+﻿関数のメモ
 
-��GLFW
-void glfwSetErrorCallback(void(*));			//�G���[�R�[���o�b�N�֐���o�^����.�������O�ɓo�^����
-bool glfwInit();							//GLFW�̏�����
-GLFWwindow* glfwCreateWindow(int,int,const char* ,int,int,);//�E�B���h�E�̐ݒ�,
-void glfwTerminate();							//�I������.
-void glfwMaakeContextCurrent(GLFWwindow*);		//�w�肵���E�B���h�E�ɑΉ�����Opengl�R���e�L�X�g��`��Ώۂɐݒ肷��.
+◎GLFW
+void glfwSetErrorCallback(void(*));			//エラーコールバック関数を登録する.初期化前に登録する
+bool glfwInit();							//GLFWの初期化
+GLFWwindow* glfwCreateWindow(int,int,const char* ,int,int,);//ウィンドウの設定,
+void glfwTerminate();							//終了処理.
+void glfwMaakeContextCurrent(GLFWwindow*);		//指定したウィンドウに対応するOpenglコンテキストを描画対象に設定する.
 
-bool glfwWindowShouldClose(GLFWwindow*);			//������window������ׂ������ׂ�.����ׂ��Ȃ�return true;
+bool glfwWindowShouldClose(GLFWwindow*);			//引数のwindowが閉じるべきか調べる.閉じるべきならreturn true;
 
-void glClearColor();		//glCrear�֐��Ŏ��s����F��ݒ肷��.
-void glClear(glenum...);	//�֐���,GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT �h��Ԃ����s
+void glClearColor();		//glCrear関数で実行する色を設定する.
+void glClear(glenum...);	//関数例,GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT 塗りつぶし実行
 
-��GLEW
-//���̂�������邱�Ƃ�����
-//�������֌W
-glewInit()	//�������߂�l�� GLEW_OK ���A���Ă����琬��.
+◎GLEW
+//ものすごくやることが多い
+//初期化関係
+glewInit()	//初期化戻り値に GLEW_OK が帰ってきたら成功.
 
 
 
-//VBO�֘A
-glGenBuffers(int ,GLuint* vbo);		//�o�b�t�@�[�쐬.
-glBindBuffer(glenum, GLuint vbo);	//�o�b�t�@�[���蓖��.������(GL_ARRAY_BUFFER,vbo)
-glBufferData(glenum,GLsizeiptr size,const GLvoid* data, glenum);	//�o�b�t�@�[�Ƀf�[�^��ݒ�
+//VBO関連
+glGenBuffers(int ,GLuint* vbo);		//バッファー作成.
+glBindBuffer(glenum, GLuint vbo);	//バッファー割り当て.引数例(GL_ARRAY_BUFFER,vbo)
+glBufferData(glenum,GLsizeiptr size,const GLvoid* data, glenum);	//バッファーにデータを設定
 glDeleteBuffers(int,GLuint* vbo);	//
 
 
-//�l�Ԗڂ̈��� GL_STATIC_DRAW
-?	STREAM(���Ƃ�[��): �o�b�t�@�͈�x�����]������A�͂��ȉ񐔂������p����܂��B
-?	STATIC(�����Ă�����): �o�b�t�@�͈�x�����]������A���x�����p����܂��B
-?	DYNAMIC(�����Ȃ݂���): �o�b�t�@�͉��x���]������A���x�����p����܂��B
-�A�N�Z�X�̃^�C�v�ɂ͎��̎�ނ�����܂��B
-?	DRAW(�ǂ�[) �o�b�t�@��glBufferData���ɂ���ăA�v���P�[�V��������X�V����AOpenGL�̕`�揈���̃\�[�X�Ƃ��Ďg���܂��B
-?	READ(��[��): �o�b�t�@��OpenGL�ɂ���čX�V����A�A�v���P�[�V��������ǂݏo����܂��B
-?	COPY(���ҁ[): �o�b�t�@��OpenGL�ɂ���čX�V����AOpenGL�̕`�揈���̃\�[�X�Ƃ��Ďg���܂��B
+//四番目の引数 GL_STATIC_DRAW
+?	STREAM(すとりーむ): バッファは一度だけ転送され、僅かな回数だけ利用されます。
+?	STATIC(すたてぃっく): バッファは一度だけ転送され、何度も利用されます。
+?	DYNAMIC(だいなみっく): バッファは何度も転送され、何度も利用されます。
+アクセスのタイプには次の種類があります。
+?	DRAW(どろー) バッファはglBufferData等によってアプリケーションから更新され、OpenGLの描画処理のソースとして使われます。
+?	READ(りーど): バッファはOpenGLによって更新され、アプリケーションから読み出されます。
+?	COPY(こぴー): バッファはOpenGLによって更新され、OpenGLの描画処理のソースとして使われます。
 
 
 
-?	GL_ARRAY_BUFFER: ���_�f�[�^�p�o�b�t�@
-?	GL_ATOMIC_COUNTER_BUFFER: �r���I�ɑ��삳���J�E���^�p�o�b�t�@
-?	GL_COPY_READ_BUFFER: �R�s�[����̓ǂݍ��݌��o�b�t�@
-?	GL_COPY_WRITE_BUFFER: �R�s�[����̓ǂݍ��ݐ�o�b�t�@
-?	GL_DISPATCH_INDIRECT_BUFER: �R���s���[�g�V�F�[�_�[�̃C���_�C���N�g�����p�o�b�t�@
-?	GL_DRAW_INDIRECT_BUFFER: ���_�V�F�[�_�[�̃C���_�C���N�g�����p�o�b�t�@
-?	GL_ELEMENT_ARRAY_BUFFER: �C���f�b�N�X�f�[�^�p�o�b�t�@
-?	GL_PIXEL_PACK_BUFFER: �s�N�Z���f�[�^�ǂݏo���p�o�b�t�@
-?	GL_PIXEL_UNPACK_BUFFER: �s�N�Z���f�[�^�����o���p�o�b�t�@
-?	GL_QUERY_BUFFER: �N�G�������p�o�b�t�@
-?	GL_SHADER_STORAGE_BUFFER: �V�F�[�_�[����ǂݏ������邽�߂̃o�b�t�@
-?	GL_TEXTURE_BUFFER: �e�N�X�`���f�[�^�p�o�b�t�@
-?	GL_TRANSFORM_FEEDBACK_BUFFER: ���W�ϊ����ʂ��󂯎�邽�߂̃o�b�t�@
-?	GL_UNIFORM_BUFFER: uniform�f�[�^�p�o�b�t�@
+?	GL_ARRAY_BUFFER: 頂点データ用バッファ
+?	GL_ATOMIC_COUNTER_BUFFER: 排他的に操作されるカウンタ用バッファ
+?	GL_COPY_READ_BUFFER: コピー操作の読み込み元バッファ
+?	GL_COPY_WRITE_BUFFER: コピー操作の読み込み先バッファ
+?	GL_DISPATCH_INDIRECT_BUFER: コンピュートシェーダーのインダイレクト処理用バッファ
+?	GL_DRAW_INDIRECT_BUFFER: 頂点シェーダーのインダイレクト処理用バッファ
+?	GL_ELEMENT_ARRAY_BUFFER: インデックスデータ用バッファ
+?	GL_PIXEL_PACK_BUFFER: ピクセルデータ読み出し用バッファ
+?	GL_PIXEL_UNPACK_BUFFER: ピクセルデータ書き出し用バッファ
+?	GL_QUERY_BUFFER: クエリ処理用バッファ
+?	GL_SHADER_STORAGE_BUFFER: シェーダーから読み書きするためのバッファ
+?	GL_TEXTURE_BUFFER: テクスチャデータ用バッファ
+?	GL_TRANSFORM_FEEDBACK_BUFFER: 座標変換結果を受け取るためのバッファ
+?	GL_UNIFORM_BUFFER: uniformデータ用バッファ
 
 
-//vao�֘A
-glGenVertexArrays(int, &GLuint vao);		//�쐬.
-glBindVertexArray(GLuint vao);				//VAO���蓖��
-glEnableVertexAttribArray(int);				//�w�肵���o�C���f�B���O�|�C���g��L���ɂ���
+//vao関連
+glGenVertexArrays(int, &GLuint vao);		//作成.
+glBindVertexArray(GLuint vao);				//VAO割り当て
+glEnableVertexAttribArray(int);				//指定したバインディングポイントを有効にする
 glVertexAttribPointer();
 
-//�V�F�[�_�[�֘A
-GLuint glCreateShader(enum shaderType);//�V�F�[�_�I�u�W�F�N�g��ǉ�
+//シェーダー関連
+GLuint glCreateShader(enum shaderType);//シェーダオブジェクトを追加
 glShaderSource(GLuint shaderid,cosnt GLchar*,nullptr);
 glCompileShader(GLuint shaderid);
 glGetShaderiv(GLuint shader,enum,GLint*);
@@ -69,7 +69,7 @@ glDeleteShader(shader);
 
 
 
-//�v���~�e�B�u��enum
+//プリミティブのenum
 GL_POINTS
 GL_LINES
 GL_LINE_STRIP
@@ -80,7 +80,33 @@ GL_TRIANGLE_FAN
 
 
 
-��glm �̊֐�
-//�s��n
-glm::mat4x4 glm::perspective(float radian,float ,float,float);�@//�������e Y�̎���p �A�X�y�N�g��(X/Y) 3,4���������_����p����̓V��y�т����܂ł̋���.
+◎glm の関数
+//行列系
+glm::mat4x4 glm::perspective(float radian,float ,float,float);　//透視投影 Yの視野角 アスペクト比(X/Y) 3,4引数が視点から角錐台の天井及びそこまでの距離.
 glm::mat4x4 glm::lookAt(glm::vec3,glm::vec3,glm::vec3);//
+
+//テクスチャ関連
+glDeleteTextures(int num,GLuint* id);	//テクスチャを削除する.
+glGenTextures(int num,GLuint* id)		//テクスチャを作成する.
+glBindTexture(glenum, GLuint id);		//テクスチャを割り当てる.
+glTexImage2D()//データを設定する.
+GLenum glGetError();			結果を返す.正常だと GL_NO_ERRORが返ってくる.
+
+glActiaveTexture(GL_TEXTURE0~31)		//指定したテクスチャーイメージユニットを処理対象にする.
+glBindTexture(GL_enum ,texid)			//テクスチャイメージユニットにテクスチャを割り当てる.
+
+
+	テクスチャへの描画(OpenGL 1.1～)
+描画対象にテクスチャを指定することで、描画結果をテクスチャとして取得します。
+	トランスフォーム・フィードバック(OpenGL 3.0～)
+通常、頂点座標を変換した結果はフラグメントシェーダに送られます。この機能を使うと、結果をフラグメントシェーダではなく指定したバッファに書き込むことができます。
+	イメージテクスチャ(OpenGL 4.2～)
+イメージ形式でテクスチャを作成することで、シェーダから任意のピクセルを読み書きできるようになります。
+	シェーダ・ストレージ・バッファ・オブジェクト(OpenGL 4.3～)
+簡単に言うとuniform変数を書き込み可能にしたものです。
+
+
+//フレームバッファ系.
+glGenRenderbuffers(int,GLuint * bufferid);
+glBindRenderbuffer(GLenum,id);
+glRenderbufferStorge(GL_RENDERBUFFER,GL_DEPTH_COMPONET24,GLint w,GLint h);

@@ -16,6 +16,9 @@
     <Filter Include="リソース ファイル\Memo">
       <UniqueIdentifier>{33e95fca-2998-4eef-9bca-e34ebc1d17f1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="リソース ファイル\Shader">
+      <UniqueIdentifier>{643dde8b-b731-4e66-927d-8fe5731e0bc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Scr\Main.cpp">
@@ -27,9 +30,24 @@
     <ClCompile Include="Scr\Debug.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Scr\Texture.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Scr\Shader.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Scr\OffscreenBuffer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Res\Shader\Simple.vert">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\Shader\Simple.frag">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Res\memo\FunctionList.txt">
@@ -44,6 +62,18 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Scr\Debug.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scr\Texture.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scr\LoadFileName.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scr\Shader.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Scr\OffscreenBuffer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

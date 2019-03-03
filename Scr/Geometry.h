@@ -10,6 +10,7 @@ struct Vertex
 {
 	glm::vec3 position;		///<座標.
 	glm::vec4 color;		///<色.
+	glm::vec2 texCoord;		///<テクスチャ座標.
 };
 
 
