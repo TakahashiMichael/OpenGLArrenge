@@ -312,14 +312,19 @@ int main() {
 		progColorFilter->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
 
 		PostEffectData postEffect;
-		postEffect.matColor[0] = glm::vec4(0.393f, 0.349f, 0.272f, 0);
-		postEffect.matColor[1] = glm::vec4(0.769f, 0.686f, 0.534f, 0);
-		postEffect.matColor[2] = glm::vec4(0.189f, 0.168f, 0.131f, 0);
-		postEffect.matColor[3] = glm::vec4(0, 0, 0, 1);
+		//postEffect.matColor[0] = glm::vec4(0.393f, 0.349f, 0.272f, 0);
+		//postEffect.matColor[1] = glm::vec4(0.769f, 0.686f, 0.534f, 0);
+		//postEffect.matColor[2] = glm::vec4(0.189f, 0.168f, 0.131f, 0);
+		//postEffect.matColor[3] = glm::vec4(0, 0, 0, 1);
+		//postEffect.matColor[0] = glm::vec4(-1, 0, 0, 0);
+		//postEffect.matColor[1] = glm::vec4( 0,-1, 0, 0);
+		//postEffect.matColor[2] = glm::vec4( 0, 0,-1, 0);
+		//postEffect.matColor[3] = glm::vec4( 1, 1, 1, 1);
+		postEffect.matColor = glm::mat4x4(1);
 		uboPostEffect->BufferSubdata(&postEffect);
 
-		progPosterFilter->UseProgram();
-		progPosterFilter->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
+		//progPosterFilter->UseProgram();
+		//progPosterFilter->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
 
 		//オフスクリーンバッファを使用して画面の描画
 		glDrawElements(

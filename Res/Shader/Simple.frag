@@ -33,4 +33,6 @@ void main() {
   }
   fragColor.rgb *= lightColor;
 
+	const float numShades = 5;  //‰e‚Ì’iŠK.
+	fragColor.rgb = ceil(fragColor.rgb * numShades)*(1 / numShades);
 }
