@@ -5,7 +5,7 @@
 
 
 #define FILENAME_BMP_GEAR "Res/Texture/Gear.bmp"
-#define FILENAME_TGA_BUCK "Res/Textrue/TitleBack.tga"
+#define FILENAME_TGA_BUCK "Res/Texture/TitleBack.tga"
 
 #define FILENAME_SHADER_VERT_SIMPLE "Res/Shader/Simple.vert"
 #define FILENAME_SHADER_VERT_COLORFILTER "Res/Shader/ColorFilter.vert"

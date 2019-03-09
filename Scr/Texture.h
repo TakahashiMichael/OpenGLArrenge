@@ -17,15 +17,20 @@ using TextureRef = Texture & ;
 class Texture 
 {
 public:
-	//
+	struct TemporaryData;
+
 	static TexturePtr Create(
-		int width,int height,GLenum iformat,GLenum format,const void* data);
+		int width, int height, GLenum iformat, GLenum format, const void* data, GLenum type);
+	static TexturePtr Create(
+		const TemporaryData&);
 	//ファイル名からテクスチャファイルを作成する.
 	static TexturePtr LoadFromFile(const char*);
 
 	GLuint Id()const { return texId; }
 	GLsizei Width()const { return width; }
 	GLsizei Height()const { return height; }
+
+
 
 private:
 	Texture() = default;

@@ -140,6 +140,7 @@
     <ClCompile Include="Scr\Main.cpp" />
     <ClCompile Include="Scr\Mesh.cpp" />
     <ClCompile Include="Scr\OffscreenBuffer.cpp" />
+    <ClCompile Include="Scr\SaveImage.cpp" />
     <ClCompile Include="Scr\Shader.cpp" />
     <ClCompile Include="Scr\Texture.cpp" />
     <ClCompile Include="Scr\UniformBuffer.cpp" />
@@ -163,9 +164,18 @@
     <ClInclude Include="Scr\LoadFileName.h" />
     <ClInclude Include="Scr\Mesh.h" />
     <ClInclude Include="Scr\OffscreenBuffer.h" />
+    <ClInclude Include="Scr\SaveImage.h" />
     <ClInclude Include="Scr\Shader.h" />
     <ClInclude Include="Scr\Texture.h" />
     <ClInclude Include="Scr\UniformBuffer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Res\Texture\Bullet.tga" />
+    <Image Include="Res\Texture\Cart.tga" />
+    <Image Include="Res\Texture\Cart2D.tga" />
+    <Image Include="Res\Texture\Day.tga" />
+    <Image Include="Res\Texture\House.tga" />
+    <Image Include="Res\Texture\White.tga" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -59,6 +59,7 @@ namespace Mesh {
 		static BufferPtr Create(int vboSize, int iboSize);
 
 		bool LoadMeshFromFile(const char* filename);
+		bool LoadOBJForomFile(const char* filename);
 		const MeshPtr& GetMesh(const char* name) const;
 		const Material& GetMaterial(size_t index) const;
 		void BindVAO() const;

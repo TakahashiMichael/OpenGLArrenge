@@ -45,6 +45,9 @@
     <ClCompile Include="Scr\Mesh.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Scr\SaveImage.cpp">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -100,5 +103,28 @@
     <ClInclude Include="Scr\Mesh.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Scr\SaveImage.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Res\Texture\Bullet.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Res\Texture\Cart.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Res\Texture\Cart2D.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Res\Texture\Day.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Res\Texture\House.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Res\Texture\White.tga">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
 </Project>

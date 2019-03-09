@@ -38,6 +38,99 @@ Texture::~Texture()
 }
 
 
+/*
+* 各ファイルから取り出さないといけないデータ
+*
+*
+*
+*/
+
+struct Texture::TemporaryData
+{
+	uint32_t width=0;
+	uint32_t height=0;
+	GLenum iformat=0;
+	GLenum format=0;
+	GLenum type = 0;
+	std::vector<uint8_t> buf;
+};
+
+/*
+* tgaを読み取る
+* 
+* @param tempDataPtr		テクスチャ作成に必要な一時データのポインタ.
+*/
+bool LoadTGA(Texture::TemporaryData* tempDataPtr,const char* filename) {
+
+	//ファイルのサイズを取得する.
+	struct stat st;
+	if (stat(filename, &st)) {
+		return false;
+	}
+	FILE* fp = fopen(filename, "rb");
+	if (!fp) {
+		return false;
+	}
+
+	//ファイルを読み込む.
+	std::vector<uint8_t> buf;
+	buf.resize(st.st_size);
+	const size_t readSize = fread(buf.data(), 1, st.st_size, fp);
+	fclose(fp);
+
+	//readSize ファイルのサイズ
+	//buf ファイルのデータ.
+	//ヘッダーの情報を取得する.
+	const uint8_t* pHeader = buf.data();
+
+	const uint32_t imageId = Get(pHeader,0,1);
+	size_t colorMapSize = 0;
+	if (Get(pHeader, 1, 1)) {
+		const uint32_t colorMapLength = Get(pHeader,5,2);
+		const uint32_t colorMapEntrySize = Get(pHeader,7,1);
+		colorMapSize = colorMapLength * colorMapEntrySize / 8;
+	}
+
+	//画像データが格納されてあるデータオフセット.
+	const size_t offsetBytes = 18 + imageId + colorMapSize;
+
+	tempDataPtr->width = Get(pHeader,12,2);
+	tempDataPtr->height = Get(pHeader,14,2);
+	const uint32_t pixelDepth = Get(pHeader,16,1);
+	const size_t imageSize = tempDataPtr->width * tempDataPtr->height *pixelDepth / 8;
+	std::cout << "whidthのサイズ::" << (int)tempDataPtr->width << std::endl;
+	std::cout << "heightのサイズ::" << (int)tempDataPtr->height << std::endl;
+	std::cout << "heightのサイズ::" << (long)imageSize << std::endl;
+
+
+	tempDataPtr->buf.resize(imageSize);
+	std::cout << "サイズ:" << tempDataPtr->buf.size();
+	//データをbufに格納する.
+	for (size_t i = 0; i < imageSize; ++i) {
+		tempDataPtr->buf[i] = buf[offsetBytes + i];
+		long test= tempDataPtr->buf[i];
+
+	}
+
+	//tgaは青緑赤透明なの
+	tempDataPtr->format = GL_BGRA;
+	tempDataPtr->type = GL_UNSIGNED_BYTE;
+	if (Get(pHeader, 2, 1)==3) {
+		tempDataPtr->format = GL_RED;
+	}
+	if (Get(pHeader, 16, 1) == 24) {
+		tempDataPtr->format = GL_BGR;
+	}
+	else if (Get(pHeader,16,1)==16) {
+		tempDataPtr->type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+	}
+	//GL_RGBA8で大丈夫だと思う.
+	tempDataPtr->iformat = GL_RGBA8;
+
+	return true;
+}
+
+
 /**
 * 2Dテクスチャを作成する.
 *
@@ -51,7 +144,7 @@ Texture::~Texture()
 *         失敗した場合はnullptr返す.
 */
 TexturePtr Texture::Create(
-	int width, int height, GLenum iformat, GLenum format, const void* data)
+	int width, int height, GLenum iformat, GLenum format, const void* data ,GLenum type)
 {
 	struct Impl :Texture {};	//生成するためにstructを定義.
 	TexturePtr p = std::make_shared<Impl>();
@@ -61,7 +154,7 @@ TexturePtr Texture::Create(
 	glGenTextures(1,&p->texId);
 	glBindTexture(GL_TEXTURE_2D,p->texId);
 	glTexImage2D(
-		GL_TEXTURE_2D,0,iformat,width,height,0,format,GL_UNSIGNED_BYTE,data);
+		GL_TEXTURE_2D,0,iformat,width,height,0,format,type,data);
 	const GLenum result = glGetError();
 	if (result != GL_NO_ERROR) {
 		std::cerr << "ERORR テクスチャの作成に失敗: 0x" << std::hex << result << std::endl;
@@ -80,6 +173,11 @@ TexturePtr Texture::Create(
 	return p;
 }
 
+TexturePtr Texture::Create(const TemporaryData& tempRef) {
+	return Create(tempRef.width, tempRef.height, tempRef.iformat, tempRef.format, tempRef.buf.data(), tempRef.type);
+
+}
+
 /**
 * ファイルから2Dテクスチャを読み込む.
 *
@@ -90,6 +188,8 @@ TexturePtr Texture::Create(
 */
 TexturePtr Texture::LoadFromFile(const char* filename)
 {
+	TemporaryData tempData;
+
 	//ファイルのサイズを取得する.
 	struct stat st;
 	if (stat(filename, &st)) {
@@ -140,10 +240,14 @@ TexturePtr Texture::LoadFromFile(const char* filename)
 			return {};
 
 		}
-		return Create(width, height, GL_RGB8, GL_BGR, buf.data() + offsetBytes);
+		std::cout << buf.size() << std::endl;
+		return Create(width, height, GL_RGB8, GL_BGR, buf.data() + offsetBytes, GL_UNSIGNED_BYTE);
 
 	}
+	else if(LoadTGA(&tempData,filename)){
+		return Create(tempData);
 
+	}
 	//指定したファイル意外ならnullを返す
 	return {};
 

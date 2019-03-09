@@ -10,6 +10,7 @@
 #include "Shader.h"
 #include "OffscreenBuffer.h"
 #include "UniformBuffer.h"
+#include "SaveImage.h"
 
 const Vertex vertices[] = {
 { {-0.5f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
@@ -229,8 +230,9 @@ int main() {
 	progColorFilter->UniformBlockBinding(*uboPostEffect);
 
 
-	TexturePtr tex = Texture::LoadFromFile(FILENAME_BMP_GEAR);
+	TexturePtr tex = Texture::LoadFromFile(FILENAME_TGA_BUCK);
 	if (!tex) {
+
 		return 1;
 		
 	}
@@ -241,6 +243,10 @@ int main() {
 
 	const OffscreenBufferPtr offscreen = OffscreenBuffer::Create(800,600);
 
+	//‰¼•Ï”.
+	int count = 0;
+	const int countMax = 120;
+	bool imageflag = false;
 
 	//‰¼•Ï”.
 	float persAngle = 1.0f;
@@ -292,6 +298,14 @@ int main() {
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES, renderingParts[0].size,
 			GL_UNSIGNED_INT, renderingParts[0].offset);
+
+		if (!imageflag) {
+			++count;
+			if (count >= countMax) {
+				SaveImage::saveImage(SaveImage::FILEFORMAT::FILEFORMAT_TGA,800,600);
+				imageflag = true;
+			}
+		}
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

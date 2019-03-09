@@ -18,7 +18,7 @@ OffscreenBufferPtr OffscreenBuffer::Create(int w, int h) {
 		return offscreen;
 	}
 	//テクスチャの作成,作成するデータはないのでdata引数はnullptr
-	offscreen->tex = Texture::Create(w,h,GL_RGBA8,GL_RGBA,nullptr);
+	offscreen->tex = Texture::Create(w,h,GL_RGBA8,GL_RGBA,nullptr, GL_UNSIGNED_BYTE);
 
 
 	//深度バッファを作成する.
