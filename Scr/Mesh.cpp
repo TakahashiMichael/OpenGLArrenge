@@ -4,6 +4,11 @@
 #include "Mesh.h"
 #include <fbxsdk.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <stdio.h>
+#include <math.h>
+
 
 /**
 * モデルデータ管理のための名前空間.
@@ -170,8 +175,24 @@ namespace Mesh {
 	*/
 	struct TemporaryMesh
 	{
+
 		std::string name;
 		std::vector<TemporaryMaterial> materialList;
+	};
+
+
+
+	/*
+	* ファイルから頂点データを中間データに変換する基底クラス
+	* 各ファイルごとに派生クラスを定義する.
+	*
+	*
+	*/
+	class FileLoader {
+	public:
+		virtual bool Load(const char* filename);
+
+		std::vector<TemporaryMesh> meshList;
 	};
 
 	/*
@@ -180,6 +201,7 @@ namespace Mesh {
 	*/
 	struct FbxLoader
 	{
+	public:
 		bool Load(const char* filename);
 		bool Convert(FbxNode* node);
 		bool LoadMesh(FbxNode* node);
@@ -187,207 +209,308 @@ namespace Mesh {
 		std::vector<TemporaryMesh> meshList;
 	};
 
-	///*
-	//* FBXファイルを読み込む
-	//*
-	//* @param filename FBX ファイル名.
-	//*
-	//* @retval true 読み込み失敗.
-	//* @retval false 読み込み失敗.
-	//*/
-	//bool FbxLoader::Load(const char* filename)
-	//{
-	//	FbxPtr<FbxManager> fbxManager(FbxManager::Create());
-	//	if (!fbxManager) {
-	//		std::cerr << "EROOR:" << filename << "の読み込みに失敗(FbxManagerの作成に失敗)" << std::endl;
-	//		return false;
-	//	}
-	//	FbxScene* fbxScene = FbxScene::Create(fbxManager.get(),"");
-	//	if (!fbxScene) {
-	//		std::cerr << "ERROR:" << filename << "の読み方に失敗(FbxSceneの作成に失敗)" << std::endl;
-	//		return false;
-	//	}
-	//	else {
-	//		FbxPtr<FbxImporter> fbxImporter(FbxImporter::Create(fbxManager.get(),""));
-	//		const bool importStatus = fbxImporter->Initialize(filename);
-	//		if (!importStatus || !fbxImporter->Import(fbxScene)) {
-	//			std::cerr << "ERROR" << filename << "の読み込みに失敗\n" <<
-	//				fbxImporter->GetStatus().GetErrorString() << std::endl;
-	//			return false;
-	//		}
-	//	}
-	//	if (!Convert(fbxScene->GetRootNode())) {
-	//		std::cerr << "ERROR:" << filename << "の変換に失敗" << std::endl;
-	//		return false;
-	//	}
-	//	return true;
-	//}
+	/*
+	* OBJ データを中間データに変換するクラス.
+	*
+	* 上の真似をして理解を深める
+	*
+	*
+	*/
+	struct ObjLoader :public FileLoader
+	{
+	public:
+		bool Load(const char* filename)override;
+		bool Convert();
+		bool LoadMesh();
 
-	///*
-	//* FBX データを仮データに変換する.
-	//*
-	//* @param fbxNode 変換対象のFBXノードへのポインタ.
-	//*
-	//* @retval true		変換成功.s
-	//* @retval false		変換失敗
-	//*
-	//*/
-	//bool FbxLoader::Convert(FbxNode* fbxNode)
-	//{
-	//	if (!fbxNode) {
-	//		return true;
-	//	}
-	//	if (!LoadMesh(fbxNode)) {
-	//		return false;
-	//	}
-	//	const int childCount = fbxNode->GetChildCount();
-	//	for (int i = 0; i < childCount;++i) {
-	//		if (!Convert(fbxNode->GetChild(i))) {
-	//			return false;
-	//		}
-	//	}
-	//	return true;
-	//}
+	};
+	/*
+	* Objファイルを読み取る.
+	*
+	*
+	*
+	*/
+	bool ObjLoader::Load(const char*filename) {
+
+		//ファイルを開く.
+		std::ifstream ifs;
+		ifs.open(filename);
+		if (!ifs.is_open()) {
+			std::cerr << "ERORR in ObjLoader::Load:" << filename << "を開けません" << std::endl;
+			return false;
+		}
+
+		//インデックス番号を登録する
+		struct Face {
+			unsigned int v;
+			unsigned int vt;
+			unsigned int vn;
+		};
+		std::vector<Face> faceList;
+		std::vector<glm::vec3> posList;
+		std::vector<glm::vec2> texCoordList;
+		std::vector<glm::vec3> normalList;
+
+		//resarveする.
+
+		//ファイルからモデルデータを読み込む.
+		while (!ifs.eof()) {
+			std::string line;
+			std::getline(ifs,line);
+
+			//読み取り処理用の変数
+			glm::vec3 v;
+			glm::vec2 vt;
+			glm::vec3 vn;
+			Face f[3];
+
+			//データを文法に対応する変数に格納する.
+			if (sscanf_s(line.data(),"v %f %f %f",&v.x,&v.y,&v.z)==3) {
+				posList.push_back(v);
+			}
+			else if (sscanf_s(line.data(),"vt %f %f",&vt.x,&vt.y)==2) {
+				texCoordList.push_back(vt);
+			}
+			else if (sscanf_s(line.data(), "vn %f %f %f", &vn.x, &vn.y, &vn.z) == 3) {
+				//objの法線は単位ベクトルではなかったりするのでここで変換しておく
+				vn = glm::normalize(vn);
+				normalList.push_back(vn);
+			}
+			else if(sscanf_s(line.data(),"f %d/%d/%d %d/%d/%d %d/%d/%d",
+				&f[0].v, &f[0].vt, &f[0].vn,
+				&f[1].v, &f[1].vt, &f[1].vn, 
+				&f[2].v, &f[2].vt, &f[2].vn) == 9){
+				faceList.push_back(f[0]);
+				faceList.push_back(f[1]);
+				faceList.push_back(f[2]);
+			}
+		}
+		std::vector<Vertex> vertices;
+		std::vector<GLushort> indices;
+		vertices.reserve(faceList.size());
+		indices.reserve(faceList.size());
+		
+		//モデルのデータを頂点データとインデックスデータに変換する.
+		for (size_t i = 0; i < faceList.size();++i) {
+			//頂点データを追加する.
+			Vertex vertex;
+			const int v = faceList[i].v - 1;
+			const int vt = faceList[i].vt - 1;
+			const int vn = faceList[i].vn - 1;
+			vertex.position = posList[v];
+			vertex.color = { 1,1,1,1 };
+			vertex.texCoord = texCoordList[vt];
+			vertex.normal = normalList[vn];
+			vertices.push_back(vertex);
+
+		}
+
+		return true;
+	}
 
 
-	///*
-	//* FBX メッシュを仮データに変換する.
-	//*
-	//* @param fbxNode 変換対象のFBX ノードへのポインタ.
-	//*
-	//* @return true 変換成功.
-	//* @return false 変更失敗.
-	//*
-	//*/
-	//bool FbxLoader::LoadMesh(FbxNode* fbxNode) {
-	//	FbxMesh* fbxMesh = fbxNode->GetMesh();
-	//	if (!fbxMesh) {
-	//		return true;
-	//	}
-	//	TemporaryMesh mesh;
-	//	mesh.name = fbxNode->GetName();
-	//	if (!fbxMesh->IsTriangleMesh()) {
-	//		std::cerr << "WARNING:" << mesh.name << "には三角形以外の面が含まれいます" <<
-	//			std::endl;
-	//	}
 
-	//	//マテリアル情報を読み取る.
-	//	const int materialCount = fbxNode->GetMaterialCount();
-	//	mesh.materialList.reserve(materialCount);
-	//	for (int i =0;i<materialCount;++i)
-	//	{
-	//		TemporaryMaterial material;
-	//		if (FbxSurfaceMaterial* fbxMaterial = fbxNode->GetMaterial(i)) {
-	//			//マテリアルの色情報を読み取る.
-	//			const FbxClassId classId = fbxMaterial->GetClassId();
-	//			if (classId == FbxSurfaceLambert::ClassId ||
-	//				classId == FbxSurfacePhong::ClassId) {
-	//				const FbxSurfaceLambert* pLambert =
-	//					static_cast<const FbxSurfaceLambert*>(fbxMaterial);
-	//				material.color = glm::vec4(ToVec3(pLambert->Diffuse.Get()),
-	//					static_cast<float>(1.0f - pLambert->TransparencyFactor));
-	//			}
-	//		}
-	//		mesh.materialList.push_back(material);
-	//	}
-	//	//マテリアルリストが空かどうか調べ、空ならダミーのマテリアルを追加する.
-	//	if (mesh.materialList.empty()) {
-	//		mesh.materialList.push_back(TemporaryMaterial());
-	//	}
+	/*
+	* FBXファイルを読み込む
+	*
+	* @param filename FBX ファイル名.
+	*
+	* @retval true 読み込み失敗.
+	* @retval false 読み込み失敗.
+	*/
+	bool FbxLoader::Load(const char* filename)
+	{
+		FbxPtr<FbxManager> fbxManager(FbxManager::Create());
+		if (!fbxManager) {
+			std::cerr << "EROOR:" << filename << "の読み込みに失敗(FbxManagerの作成に失敗)" << std::endl;
+			return false;
+		}
+		FbxScene* fbxScene = FbxScene::Create(fbxManager.get(),"");
+		if (!fbxScene) {
+			std::cerr << "ERROR:" << filename << "の読み方に失敗(FbxSceneの作成に失敗)" << std::endl;
+			return false;
+		}
+		else {
+			FbxPtr<FbxImporter> fbxImporter(FbxImporter::Create(fbxManager.get(),""));
+			const bool importStatus = fbxImporter->Initialize(filename);
+			if (!importStatus || !fbxImporter->Import(fbxScene)) {
+				std::cerr << "ERROR" << filename << "の読み込みに失敗\n" <<
+					fbxImporter->GetStatus().GetErrorString() << std::endl;
+				return false;
+			}
+		}
+		if (!Convert(fbxScene->GetRootNode())) {
+			std::cerr << "ERROR:" << filename << "の変換に失敗" << std::endl;
+			return false;
+		}
+		return true;
+	}
 
-	//	//頂点要素の有無を調べる.
-	//	const bool hasColor = fbxMesh->GetElementVertexColorCount() > 0;
-	//	const bool hasTexcoord = fbxMesh->GetElementUVCount() > 0;
-	//	const bool hasNormal = fbxMesh->GetElementNormalCount() > 0;
+	/*
+	* FBX データを仮データに変換する.
+	*
+	* @param fbxNode 変換対象のFBXノードへのポインタ.
+	*
+	* @retval true		変換成功.s
+	* @retval false		変換失敗
+	*
+	*/
+	bool FbxLoader::Convert(FbxNode* fbxNode)
+	{
+		if (!fbxNode) {
+			return true;
+		}
+		if (!LoadMesh(fbxNode)) {
+			return false;
+		}
+		const int childCount = fbxNode->GetChildCount();
+		for (int i = 0; i < childCount;++i) {
+			if (!Convert(fbxNode->GetChild(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-	//	//UVセット名のリストを取得する.
-	//	FbxStringList uvSetNameList;
-	//	fbxMesh->GetUVSetNames(uvSetNameList);
 
-	//	//色情報を読み取る準備
-	//	// @note 座標/UV/法線以外のパラメータには直接読み取る関数が提供されていないため.
-	//	//		「FbxGeometryElement???」クラスから読み取る必要がある.
-	//	FbxGeometryElement::EMappingMode colorMappingMode = FbxLayerElement::eNone;
-	//	bool isColorDirectRef = true;
-	//	const FbxLayerElementArrayTemplate<int>* colorIndexList = nullptr;
-	//	const FbxLayerElementArrayTemplate<FbxColor>* colorList = nullptr;
-	//	if (hasColor) {
-	//		const FbxGeometryElementVertexColor* fbxColorList =
-	//			fbxMesh->GetElementVertexColor();
-	//		colorMappingMode = fbxColorList->GetMappingMode();
-	//		isColorDirectRef = fbxColorList->GetReferenceMode() == FbxLayerElement::eDirect;
-	//		colorIndexList = &fbxColorList->GetIndexArray();
-	//		colorList = &fbxColorList->GetDirectArray();
-	//	}
-	//	//頂点がどのマテリアルに属するか示すマテリアルインデックスリストを取得する.
-	//	const FbxLayerElementArrayTemplate<int>* materialIndexList = nullptr;
-	//	if (FbxGeometryElementMaterial* fbxMaterialLayer = fbxMesh->GetElementMaterial()) {
-	//		materialIndexList = &fbxMaterialLayer->GetIndexArray();
-	//	}
+	/*
+	* FBX メッシュを仮データに変換する.
+	*
+	* @param fbxNode 変換対象のFBX ノードへのポインタ.
+	*
+	* @return true 変換成功.
+	* @return false 変更失敗.
+	*
+	*/
+	bool FbxLoader::LoadMesh(FbxNode* fbxNode) {
+		FbxMesh* fbxMesh = fbxNode->GetMesh();
+		if (!fbxMesh) {
+			return true;
+		}
+		TemporaryMesh mesh;
+		mesh.name = fbxNode->GetName();
+		if (!fbxMesh->IsTriangleMesh()) {
+			std::cerr << "WARNING:" << mesh.name << "には三角形以外の面が含まれいます" <<
+				std::endl;
+		}
 
-	//	//ポリゴン数に基づいて,仮データバッファの容量を予約する.
-	//	const int polygonCount = fbxMesh->GetPolygonCount() * 3;
-	//	for (auto& e : mesh.materialList) {
-	//		const size_t avarageCapacity = polygonCount / mesh.materialList.size();
-	//		e.indexBuffer.reserve(avarageCapacity);
-	//		e.vertexBuffer.reserve(avarageCapacity);
-	//	}
-	//	//頂点データを変換する.
-	//	const FbxAMatrix matTRS(fbxNode->EvaluateGlobalTransform());
-	//	const FbxAMatrix matR(FbxVector4(0,0,0),matTRS.GetR(),FbxVector4(1,1,1));
-	//	const FbxVector4* const fbxControlPoints = fbxMesh->GetControlPoints();
-	//	int polygonVertex = 0;
-	//	for (int polygonIndex = 0; polygonIndex < polygonCount;++polygonIndex) {
-	//		for (int pos = 0; pos < 3; ++pos) {
-	//			Vertex v;
-	//			const int cpIndex = fbxMesh->GetPolygonVertex(polygonIndex,pos);
-	//			//頂点座標
-	//			v.position = ToVec3(matTRS.MultT(fbxControlPoints[cpIndex]));
+		//マテリアル情報を読み取る.
+		const int materialCount = fbxNode->GetMaterialCount();
+		mesh.materialList.reserve(materialCount);
+		for (int i =0;i<materialCount;++i)
+		{
+			TemporaryMaterial material;
+			if (FbxSurfaceMaterial* fbxMaterial = fbxNode->GetMaterial(i)) {
+				//マテリアルの色情報を読み取る.
+				const FbxClassId classId = fbxMaterial->GetClassId();
+				if (classId == FbxSurfaceLambert::ClassId ||
+					classId == FbxSurfacePhong::ClassId) {
+					const FbxSurfaceLambert* pLambert =
+						static_cast<const FbxSurfaceLambert*>(fbxMaterial);
+					material.color = glm::vec4(ToVec3(pLambert->Diffuse.Get()),
+						static_cast<float>(1.0f - pLambert->TransparencyFactor));
+				}
+			}
+			mesh.materialList.push_back(material);
+		}
+		//マテリアルリストが空かどうか調べ、空ならダミーのマテリアルを追加する.
+		if (mesh.materialList.empty()) {
+			mesh.materialList.push_back(TemporaryMaterial());
+		}
 
-	//			//頂点カラー.
-	//			v.color = glm::vec4(1);
-	//			if (hasColor) {
-	//				switch (colorMappingMode) {
-	//				case FbxLayerElement::eByControlPoint:
-	//					v.color = ToVec4((*colorList)[
-	//						isColorDirectRef ? cpIndex:(*colorIndexList)[cpIndex]]);
-	//					break;
-	//				case FbxLayerElement::eByPolygonVertex:
-	//					v.color = ToVec4((*colorList)[
-	//						isColorDirectRef ? cpIndex : (*colorIndexList)[cpIndex]]);
-	//					break;
-	//				default:
-	//					break;
-	//				}
-	//			}
-	//			//UV座標.
-	//			v.texCoord = glm::vec2(0);
-	//			if (hasTexcoord) {
-	//				FbxVector2 uv;
-	//				bool unmapped;
-	//				fbxMesh->GetPolygonVertexUV(polygonIndex,pos,uvSetNameList[0],uv,unmapped);
-	//				v.texCoord = ToVec2(uv);
-	//			}
-	//			//法線.
-	//			v.normal = glm::vec3(0,0,1);
-	//			if (hasNormal) {
-	//				FbxVector4 normal;
-	//				fbxMesh->GetPolygonVertexNormal(polygonIndex,pos,normal);
-	//				v.normal = glm::normalize(ToVec3(matR.MultT(normal)));
-	//			}
-	//			//頂点に対応する仮マテリアルに,頂点データとインデックスデータを追加する.
-	//			TemporaryMaterial& materialData = mesh.materialList[
-	//				materialIndexList ? (*materialIndexList)[polygonIndex] : 0];
-	//			materialData.indexBuffer.push_back(
-	//				static_cast<uint32_t>(materialData.vertexBuffer.size()));
-	//			materialData.vertexBuffer.push_back(v);
+		//頂点要素の有無を調べる.
+		const bool hasColor = fbxMesh->GetElementVertexColorCount() > 0;
+		const bool hasTexcoord = fbxMesh->GetElementUVCount() > 0;
+		const bool hasNormal = fbxMesh->GetElementNormalCount() > 0;
 
-	//			++polygonVertex;
-	//		}
-	//	}
-	//	meshList.push_back(std::move(mesh));
-	//	return true;
-	//}
+		//UVセット名のリストを取得する.
+		FbxStringList uvSetNameList;
+		fbxMesh->GetUVSetNames(uvSetNameList);
+
+		//色情報を読み取る準備
+		// @note 座標/UV/法線以外のパラメータには直接読み取る関数が提供されていないため.
+		//		「FbxGeometryElement???」クラスから読み取る必要がある.
+		FbxGeometryElement::EMappingMode colorMappingMode = FbxLayerElement::eNone;
+		bool isColorDirectRef = true;
+		const FbxLayerElementArrayTemplate<int>* colorIndexList = nullptr;
+		const FbxLayerElementArrayTemplate<FbxColor>* colorList = nullptr;
+		if (hasColor) {
+			const FbxGeometryElementVertexColor* fbxColorList =
+				fbxMesh->GetElementVertexColor();
+			colorMappingMode = fbxColorList->GetMappingMode();
+			isColorDirectRef = fbxColorList->GetReferenceMode() == FbxLayerElement::eDirect;
+			colorIndexList = &fbxColorList->GetIndexArray();
+			colorList = &fbxColorList->GetDirectArray();
+		}
+		//頂点がどのマテリアルに属するか示すマテリアルインデックスリストを取得する.
+		const FbxLayerElementArrayTemplate<int>* materialIndexList = nullptr;
+		if (FbxGeometryElementMaterial* fbxMaterialLayer = fbxMesh->GetElementMaterial()) {
+			materialIndexList = &fbxMaterialLayer->GetIndexArray();
+		}
+
+		//ポリゴン数に基づいて,仮データバッファの容量を予約する.
+		const int polygonCount = fbxMesh->GetPolygonCount() * 3;
+		for (auto& e : mesh.materialList) {
+			const size_t avarageCapacity = polygonCount / mesh.materialList.size();
+			e.indexBuffer.reserve(avarageCapacity);
+			e.vertexBuffer.reserve(avarageCapacity);
+		}
+		//頂点データを変換する.
+		const FbxAMatrix matTRS(fbxNode->EvaluateGlobalTransform());
+		const FbxAMatrix matR(FbxVector4(0,0,0),matTRS.GetR(),FbxVector4(1,1,1));
+		const FbxVector4* const fbxControlPoints = fbxMesh->GetControlPoints();
+		int polygonVertex = 0;
+		for (int polygonIndex = 0; polygonIndex < polygonCount;++polygonIndex) {
+			for (int pos = 0; pos < 3; ++pos) {
+				Vertex v;
+				const int cpIndex = fbxMesh->GetPolygonVertex(polygonIndex,pos);
+				//頂点座標
+				v.position = ToVec3(matTRS.MultT(fbxControlPoints[cpIndex]));
+
+				//頂点カラー.
+				v.color = glm::vec4(1);
+				if (hasColor) {
+					switch (colorMappingMode) {
+					case FbxLayerElement::eByControlPoint:
+						v.color = ToVec4((*colorList)[
+							isColorDirectRef ? cpIndex:(*colorIndexList)[cpIndex]]);
+						break;
+					case FbxLayerElement::eByPolygonVertex:
+						v.color = ToVec4((*colorList)[
+							isColorDirectRef ? cpIndex : (*colorIndexList)[cpIndex]]);
+						break;
+					default:
+						break;
+					}
+				}
+				//UV座標.
+				v.texCoord = glm::vec2(0);
+				if (hasTexcoord) {
+					FbxVector2 uv;
+					bool unmapped;
+					fbxMesh->GetPolygonVertexUV(polygonIndex,pos,uvSetNameList[0],uv,unmapped);
+					v.texCoord = ToVec2(uv);
+				}
+				//法線.
+				v.normal = glm::vec3(0,0,1);
+				if (hasNormal) {
+					FbxVector4 normal;
+					fbxMesh->GetPolygonVertexNormal(polygonIndex,pos,normal);
+					v.normal = glm::normalize(ToVec3(matR.MultT(normal)));
+				}
+				//頂点に対応する仮マテリアルに,頂点データとインデックスデータを追加する.
+				TemporaryMaterial& materialData = mesh.materialList[
+					materialIndexList ? (*materialIndexList)[polygonIndex] : 0];
+				materialData.indexBuffer.push_back(
+					static_cast<uint32_t>(materialData.vertexBuffer.size()));
+				materialData.vertexBuffer.push_back(v);
+
+				++polygonVertex;
+			}
+		}
+		meshList.push_back(std::move(mesh));
+		return true;
+	}
 
 	/**
 	* コンストラクタ.
@@ -459,65 +582,65 @@ namespace Mesh {
 			glDeleteBuffers(1, &vbo);
 		}
 	}
-//	/**
-//* メッシュをファイルから読み込む.
-//*
-//* @param filename メッシュファイル名.
-//*
-//* @retval true  読み込み成功.
-//* @retval false 読み込み失敗.
-//*/
-//	bool Buffer::LoadMeshFromFile(const char* filename)
-//	{
-//		FbxLoader loader;	//FBXの情報を受け取る仮データ.
-//		if (!loader.Load(filename)) {
-//			return false;
-//		}
-//		//
-//		GLint64 vboSize = 0;		
-//		GLint64 iboSize = 0;
-//		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//		glGetBufferParameteri64v(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &vboSize);
-//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-//		glGetBufferParameteri64v(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &iboSize);
-//		for (TemporaryMesh& e : loader.meshList) {
-//			for (TemporaryMaterial& material : e.materialList) {
-//				const GLsizeiptr verticesBytes = material.vertexBuffer.size() * sizeof(Vertex);
-//				if (vboEnd + verticesBytes >= vboSize) {
-//					std::cerr << "WARNING: VBOサイズが不足しています(" <<
-//						vboEnd << '/' << vboSize << ')' << std::endl;
-//					continue;
-//				}
-//				const GLsizei indexSize = static_cast<GLsizei>(material.indexBuffer.size());
-//				const GLsizeiptr indicesBytes = indexSize * sizeof(uint32_t);
-//				if (iboEnd + indicesBytes >= iboSize) {
-//					std::cerr << "WARNING: IBOサイズが不足しています(" <<
-//						iboEnd << '/' << iboSize << ')' << std::endl;
-//					continue;
-//				}
-//				//やってることはbuffersubdataでvboに追加
-//				glBufferSubData(GL_ARRAY_BUFFER, vboEnd, verticesBytes,
-//					material.vertexBuffer.data());
-//				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, iboEnd, indicesBytes,
-//					material.indexBuffer.data());
-//				const GLint baseVertex = static_cast<uint32_t>(vboEnd / sizeof(Vertex));
-//				materialList.push_back({ GL_UNSIGNED_INT, indexSize,
-//				  reinterpret_cast<GLvoid*>(iboEnd), baseVertex, material.color });
-//				vboEnd += verticesBytes;
-//				iboEnd += indicesBytes;
-//			}
-//
-//			struct Impl : public Mesh {
-//				Impl(const std::string& n, size_t b, size_t e) : Mesh(n, b, e) {}
-//				~Impl() {}
-//			};
-//			const size_t endMaterial = materialList.size();
-//			const size_t beginMaterial = endMaterial - e.materialList.size();
-//			meshList.insert(std::make_pair(
-//				e.name, std::make_shared<Impl>(e.name, beginMaterial, endMaterial)));
-//		}
-//		return true;
-//	}
+	/**
+* メッシュをファイルから読み込む.
+*
+* @param filename メッシュファイル名.
+*
+* @retval true  読み込み成功.
+* @retval false 読み込み失敗.
+*/
+	bool Buffer::LoadMeshFromFile(const char* filename)
+	{
+		FbxLoader loader;	//FBXの情報を受け取る仮データ.
+		if (!loader.Load(filename)) {
+			return false;
+		}
+		//
+		GLint64 vboSize = 0;		
+		GLint64 iboSize = 0;
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glGetBufferParameteri64v(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &vboSize);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glGetBufferParameteri64v(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &iboSize);
+		for (TemporaryMesh& e : loader.meshList) {
+			for (TemporaryMaterial& material : e.materialList) {
+				const GLsizeiptr verticesBytes = material.vertexBuffer.size() * sizeof(Vertex);
+				if (vboEnd + verticesBytes >= vboSize) {
+					std::cerr << "WARNING: VBOサイズが不足しています(" <<
+						vboEnd << '/' << vboSize << ')' << std::endl;
+					continue;
+				}
+				const GLsizei indexSize = static_cast<GLsizei>(material.indexBuffer.size());
+				const GLsizeiptr indicesBytes = indexSize * sizeof(uint32_t);
+				if (iboEnd + indicesBytes >= iboSize) {
+					std::cerr << "WARNING: IBOサイズが不足しています(" <<
+						iboEnd << '/' << iboSize << ')' << std::endl;
+					continue;
+				}
+				//やってることはbuffersubdataでvboに追加
+				glBufferSubData(GL_ARRAY_BUFFER, vboEnd, verticesBytes,
+					material.vertexBuffer.data());
+				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, iboEnd, indicesBytes,
+					material.indexBuffer.data());
+				const GLint baseVertex = static_cast<uint32_t>(vboEnd / sizeof(Vertex));
+				materialList.push_back({ GL_UNSIGNED_INT, indexSize,
+				  reinterpret_cast<GLvoid*>(iboEnd), baseVertex, material.color });
+				vboEnd += verticesBytes;
+				iboEnd += indicesBytes;
+			}
+
+			struct Impl : public Mesh {
+				Impl(const std::string& n, size_t b, size_t e) : Mesh(n, b, e) {}
+				~Impl() {}
+			};
+			const size_t endMaterial = materialList.size();
+			const size_t beginMaterial = endMaterial - e.materialList.size();
+			meshList.insert(std::make_pair(
+				e.name, std::make_shared<Impl>(e.name, beginMaterial, endMaterial)));
+		}
+		return true;
+	}
 	/**
 	* メッシュを取得する.
 	*

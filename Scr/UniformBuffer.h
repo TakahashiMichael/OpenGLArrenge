@@ -19,6 +19,13 @@ public:
 		GLsizeiptr size, GLuint bindingPoint,const char* name);
 
 	bool BufferSubdata(const GLvoid* data,GLintptr offset=0,GLsizeiptr size=0);
+
+	//EntityClass‚ð‘n‚Á‚½Žž‚É
+	void BindBufferRange(GLintptr offset,GLsizeiptr size)const;
+	void* MapBuffer()const;
+	void UnmapBuffer()const;
+
+
 	GLsizeiptr Size()const { return size; }
 	GLuint BindingPoint()const { return bindingPoint; }
 	const std::string& Name()const { return name; }

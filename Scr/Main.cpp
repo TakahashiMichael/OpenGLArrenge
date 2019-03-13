@@ -11,6 +11,7 @@
 #include "OffscreenBuffer.h"
 #include "UniformBuffer.h"
 #include "SaveImage.h"
+#include "Function.h"
 
 const Vertex vertices[] = {
 { {-0.5f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
@@ -198,10 +199,22 @@ GLuint CreateVAO(GLuint vbo ,GLuint ibo)
 
 
 int main() {
+	//test.
+	std::string str= Func::CutExtension("Res/Texture/test.tga");
+	std::cout << str << std::endl;
+	if (Func::GetExtension("test.obj") == Func::Extension::NONE) {
+		std::cout << "NONE" << std::endl;
+	}
+	else if(Func::GetExtension("test.obj") == Func::Extension::OBJ)
+	{
+		std::cout << "OBJ" << std::endl;
+
+	}
+
 	//ƒVƒ“ƒOƒ‹ƒgƒ“Žæ“¾
 	GLFWEW::WindowRef window = GLFWEW::Window::Instance();
 
-	if (!window.Init(800,600,"opengl")) {
+	if (!window.Init(800.0f,600.0f,"opengl")) {
 		std::cerr << "ERORR:GLFWEW‚Ì‰Šú‰»‚ÉŽ¸”s‚µ‚Ü‚µ‚½" << std::endl;
 		return 1;
 	}
@@ -238,10 +251,9 @@ int main() {
 	}
 
 
+	
 
-
-
-	const OffscreenBufferPtr offscreen = OffscreenBuffer::Create(800,600);
+	const OffscreenBufferPtr offscreen = OffscreenBuffer::Create(window.Width(), window.Height());
 
 	//‰¼•Ï”.
 	int count = 0;
@@ -302,7 +314,7 @@ int main() {
 		if (!imageflag) {
 			++count;
 			if (count >= countMax) {
-				SaveImage::saveImage(SaveImage::FILEFORMAT::FILEFORMAT_TGA,800,600);
+				SaveImage::saveImage(SaveImage::FILEFORMAT::FILEFORMAT_TGA,window.Width(),window.Height());
 				imageflag = true;
 			}
 		}

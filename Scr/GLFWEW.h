@@ -25,6 +25,9 @@ namespace GLFWEW {
 		bool ShouldClose()const;			//ウィンドウを閉じるか否か
 		void Clear();						//画面を消す.
 		void SwapBuffers()const;			//バックバッファ切り替え.
+		float Width()const { return size.x; }
+		float Height()const { return size.y; }
+
 
 	private:
 		//シングルトンなので色々privateに
