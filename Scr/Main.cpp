@@ -334,7 +334,6 @@ int main() {
 	//‰¼•Ï”.
 	// ƒƒCƒ“ƒ‹[ƒv.
 	while (!window.ShouldClose()) {
-		Update(entityBuffer, meshBuffer, texToroid, progSimple);
 		glBindFramebuffer(GL_FRAMEBUFFER,offscreen->GetFrameBuffer());
 		window.Clear();
 		glEnable(GL_DEPTH_TEST);
