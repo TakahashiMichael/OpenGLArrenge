@@ -157,6 +157,7 @@
     <None Include="Res\Shader\Simple.vert" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Res\memo\AboutMesh.txt" />
     <Text Include="Res\memo\FunctionList.txt" />
     <Text Include="Res\memo\Question.txt" />
   </ItemGroup>

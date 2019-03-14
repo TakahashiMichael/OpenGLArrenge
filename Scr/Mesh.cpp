@@ -152,7 +152,8 @@ namespace Mesh {
 	{
 		void operator()(T* p) { if (p) { p->Destroy(); } }
 	};
-	///FBX オブジェクトを管理するためのポインタ型.
+	///FBX オブジェクトを管理するためのポインタ型.エイリアステンプレート
+
 	template<typename T>
 	using FbxPtr = std::unique_ptr<T,Deleter<T>>;
 
@@ -182,18 +183,7 @@ namespace Mesh {
 
 
 
-	/*
-	* ファイルから頂点データを中間データに変換する基底クラス
-	* 各ファイルごとに派生クラスを定義する.
-	*
-	*
-	*/
-	class FileLoader {
-	public:
-		virtual bool Load(const char* filename);
 
-		std::vector<TemporaryMesh> meshList;
-	};
 
 	/*
 	* FBX データを中間データに変換するクラス
@@ -208,106 +198,6 @@ namespace Mesh {
 		
 		std::vector<TemporaryMesh> meshList;
 	};
-
-	/*
-	* OBJ データを中間データに変換するクラス.
-	*
-	* 上の真似をして理解を深める
-	*
-	*
-	*/
-	struct ObjLoader :public FileLoader
-	{
-	public:
-		bool Load(const char* filename)override;
-		bool Convert();
-		bool LoadMesh();
-
-	};
-	/*
-	* Objファイルを読み取る.
-	*
-	*
-	*
-	*/
-	bool ObjLoader::Load(const char*filename) {
-
-		//ファイルを開く.
-		std::ifstream ifs;
-		ifs.open(filename);
-		if (!ifs.is_open()) {
-			std::cerr << "ERORR in ObjLoader::Load:" << filename << "を開けません" << std::endl;
-			return false;
-		}
-
-		//インデックス番号を登録する
-		struct Face {
-			unsigned int v;
-			unsigned int vt;
-			unsigned int vn;
-		};
-		std::vector<Face> faceList;
-		std::vector<glm::vec3> posList;
-		std::vector<glm::vec2> texCoordList;
-		std::vector<glm::vec3> normalList;
-
-		//resarveする.
-
-		//ファイルからモデルデータを読み込む.
-		while (!ifs.eof()) {
-			std::string line;
-			std::getline(ifs,line);
-
-			//読み取り処理用の変数
-			glm::vec3 v;
-			glm::vec2 vt;
-			glm::vec3 vn;
-			Face f[3];
-
-			//データを文法に対応する変数に格納する.
-			if (sscanf_s(line.data(),"v %f %f %f",&v.x,&v.y,&v.z)==3) {
-				posList.push_back(v);
-			}
-			else if (sscanf_s(line.data(),"vt %f %f",&vt.x,&vt.y)==2) {
-				texCoordList.push_back(vt);
-			}
-			else if (sscanf_s(line.data(), "vn %f %f %f", &vn.x, &vn.y, &vn.z) == 3) {
-				//objの法線は単位ベクトルではなかったりするのでここで変換しておく
-				vn = glm::normalize(vn);
-				normalList.push_back(vn);
-			}
-			else if(sscanf_s(line.data(),"f %d/%d/%d %d/%d/%d %d/%d/%d",
-				&f[0].v, &f[0].vt, &f[0].vn,
-				&f[1].v, &f[1].vt, &f[1].vn, 
-				&f[2].v, &f[2].vt, &f[2].vn) == 9){
-				faceList.push_back(f[0]);
-				faceList.push_back(f[1]);
-				faceList.push_back(f[2]);
-			}
-		}
-		std::vector<Vertex> vertices;
-		std::vector<GLushort> indices;
-		vertices.reserve(faceList.size());
-		indices.reserve(faceList.size());
-		
-		//モデルのデータを頂点データとインデックスデータに変換する.
-		for (size_t i = 0; i < faceList.size();++i) {
-			//頂点データを追加する.
-			Vertex vertex;
-			const int v = faceList[i].v - 1;
-			const int vt = faceList[i].vt - 1;
-			const int vn = faceList[i].vn - 1;
-			vertex.position = posList[v];
-			vertex.color = { 1,1,1,1 };
-			vertex.texCoord = texCoordList[vt];
-			vertex.normal = normalList[vn];
-			vertices.push_back(vertex);
-
-		}
-
-		return true;
-	}
-
 
 
 	/*
@@ -383,17 +273,19 @@ namespace Mesh {
 	*
 	*/
 	bool FbxLoader::LoadMesh(FbxNode* fbxNode) {
+		//FBXファイルからメッシュデータを取得
 		FbxMesh* fbxMesh = fbxNode->GetMesh();
 		if (!fbxMesh) {
 			return true;
 		}
-		TemporaryMesh mesh;
+		TemporaryMesh mesh;			///<仮メッシュ関数
+		//名前の取得
 		mesh.name = fbxNode->GetName();
 		if (!fbxMesh->IsTriangleMesh()) {
+			///三角形のみの構成かを調べる.違った場合でもそのまま実行する.
 			std::cerr << "WARNING:" << mesh.name << "には三角形以外の面が含まれいます" <<
 				std::endl;
 		}
-
 		//マテリアル情報を読み取る.
 		const int materialCount = fbxNode->GetMaterialCount();
 		mesh.materialList.reserve(materialCount);
@@ -417,12 +309,10 @@ namespace Mesh {
 		if (mesh.materialList.empty()) {
 			mesh.materialList.push_back(TemporaryMaterial());
 		}
-
 		//頂点要素の有無を調べる.
 		const bool hasColor = fbxMesh->GetElementVertexColorCount() > 0;
 		const bool hasTexcoord = fbxMesh->GetElementUVCount() > 0;
 		const bool hasNormal = fbxMesh->GetElementNormalCount() > 0;
-
 		//UVセット名のリストを取得する.
 		FbxStringList uvSetNameList;
 		fbxMesh->GetUVSetNames(uvSetNameList);

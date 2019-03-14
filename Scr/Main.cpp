@@ -334,6 +334,7 @@ int main() {
 	//仮変数.
 	// メインループ.
 	while (!window.ShouldClose()) {
+		Update(entityBuffer, meshBuffer, texToroid, progSimple);
 		glBindFramebuffer(GL_FRAMEBUFFER,offscreen->GetFrameBuffer());
 		window.Clear();
 		glEnable(GL_DEPTH_TEST);
@@ -359,22 +360,29 @@ int main() {
 
 
 		//
-		progSimple->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,tex->Id());
-		meshBuffer->BindVAO();
-		meshBuffer->GetMesh("Toroid")->Draw(meshBuffer);
+
 
 
 		//オフスクリーンバッファへ描画する.
 		glBindVertexArray(vao);
+		progSimple->BindTexture(GL_TEXTURE0, GL_TEXTURE_2D, tex->Id());
 		glDrawElements(GL_TRIANGLES, renderingParts[0].size,
 			GL_UNSIGNED_INT, renderingParts[0].offset);
-		progSimple->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,texToroid->Id());
+
+		progSimple->BindTexture(GL_TEXTURE0, GL_TEXTURE_2D, texToroid->Id());
+		meshBuffer->BindVAO();
+		meshBuffer->GetMesh("Toroid")->Draw(meshBuffer);
+
+		entityBuffer->Update(1.0 / 60.0, matView, matProj);
+		entityBuffer->Draw(meshBuffer);
+
+		glBindVertexArray(vao);
 
 
 		//entityBuffer->Update(1.0 / 60.0, matView, matProj);
 		//entityBuffer->Draw(meshBuffer);
 
-		glBindVertexArray(vao);
+
 
 		if (!imageflag) {
 			++count;

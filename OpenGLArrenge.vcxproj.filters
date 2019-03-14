@@ -83,6 +83,9 @@
     <Text Include="Res\memo\Question.txt">
       <Filter>リソース ファイル\Memo</Filter>
     </Text>
+    <Text Include="Res\memo\AboutMesh.txt">
+      <Filter>リソース ファイル\Memo</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scr\GLFWEW.h">

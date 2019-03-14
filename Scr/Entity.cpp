@@ -168,17 +168,21 @@ namespace Entity {
 	* @param matView ViewçsóÒ.
 	* @param matProj ProjectionçsóÒ.
 	*/
-	void Buffer::Update(double delta, const glm::mat4& matView, const glm::mat4& matProf)
+	void Buffer::Update(double delta, const glm::mat4& matView, const glm::mat4& matProj)
 	{
 		uint8_t* p = static_cast<uint8_t*>(ubo->MapBuffer());
 		for (itrUpdate = activeList.next; itrUpdate != &activeList;
 			itrUpdate = itrUpdate->next) {
 			LinkEntity& e = *static_cast<LinkEntity*>(itrUpdate);
-			e.position += e.velocity* static_cast<float>(delta);
+			e.position += e.velocity * static_cast<float>(delta);
+			if (e.updateFunc) {
+				e.updateFunc(e, p + e.uboOffset, delta, matView, matProj);
+			}
 		}
 		itrUpdate = nullptr;
 		ubo->UnmapBuffer();
 	}
+
 
 
 	/**

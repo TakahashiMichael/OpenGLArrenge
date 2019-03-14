@@ -34,10 +34,18 @@ namespace Mesh {
 	{
 		friend class Buffer;
 	public:
-		const std::string& Name() const { return name; }
-		void Draw(const BufferPtr& buffer) const;
+		
+		const std::string& Name() const { return name; }		///<名前を取得するゲッター
+		void Draw(const BufferPtr& buffer) const;				///<描画関数
 
 	private:
+		/* privateに置くことで生では作成できないが.
+		* friend class であるBufferだけがMesh classを作成することができる.
+		*
+		*
+		*
+		*
+		*/
 		Mesh() = default;
 		Mesh(const std::string& n, size_t begin, size_t end);
 		Mesh(const Mesh&) = default;
