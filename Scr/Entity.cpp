@@ -15,9 +15,9 @@ namespace Entity {
 	*/
 	glm::mat4 Entity::CalcModelMatrix()const
 	{
-		const glm::mat4 t = glm::translate(glm::mat4(),position);
+		const glm::mat4 t = glm::translate(glm::mat4(1),position);
 		const glm::mat4 r = glm::mat4_cast(rotation);
-		const glm::mat4 s = glm::scale(glm::mat4(),scale);
+		const glm::mat4 s = glm::scale(glm::mat4(1),scale);
 		return t * r * s;
 	}
 
