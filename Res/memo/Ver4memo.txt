@@ -1,0 +1,56 @@
+//第四回
+テクスチャーという概念
+やることが多いので大まかな流れ.
+
+①テクスチャ座標を頂点データに追加する
+②更にテクスチャにuniformサンプラー2D変数を用意する
+③テクスチャデータをどうにか用意する
+④サンプラーロケーションの取得
+⑤テクスチャバインディングポイントをシェーダーに送信
+⑥使用するバインディングポイントをアクティブに設定
+⑦テクスチャを設定する
+
+端折って書いても結構ある,
+バインディングポイントとという概念が加わっている分複雑に感じる.
+
+"  fragColor = inColor * texture(colorSampler, inTexCoord);"
+
+glUniform1i(colorSamplerLoc, 0);
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, tex->Id());
+
+
+//テクスチャ作成の流れ
+
+GLuint textureid
+  glGenTextures(1, &id);//(作成数,idのポインタ)
+  glBindTexture(GL_TEXTURE_2D, id);//(enum,id)
+  glTexImage2D(GL_TEXTURE_2D,
+   0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+   //(enum,ミップマップのレベル,iformat,幅,高さ,使用禁止(常に0),元データのフォーマット,1色のサイズ,dataのバイトオフセット)
+
+   //作成だけならここまで
+
+  const GLenum result = glGetError();
+  if (result != GL_NO_ERROR) {
+    std::cerr << "ERROR: テクスチャの作成に失敗(0x" << std::hex << result << ").";
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDeleteTextures(1, &id);
+    return 0;
+  }
+
+
+  色々設定すると描画のされ方が変わる.(資料へ)
+  +// テクスチャのパラメータを設定する.
++glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
++glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
++glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
++glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
++glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+
+サンプラー2D型についてはGLSLへ
+
+
+テクスチャイメージユニットについて,
+一つのテクスチャイメージユニットに設定できるテクスチャは一個まで

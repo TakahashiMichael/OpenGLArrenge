@@ -141,6 +141,7 @@
     <ClInclude Include="Src\FileNameList.h" />
     <ClInclude Include="Src\GamePad.h" />
     <ClInclude Include="Src\GLFWEW.h" />
+    <ClInclude Include="Src\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Res\memo\AboutGLM.txt" />
@@ -148,10 +149,12 @@
     <Text Include="Res\memo\Ver1memo.txt" />
     <Text Include="Res\memo\Ver2memo.txt" />
     <Text Include="Res\memo\Ver3memo.txt" />
+    <Text Include="Res\memo\Ver4memo.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\GLFWEW.cpp" />
     <ClCompile Include="Src\Main.cpp" />
+    <ClCompile Include="Src\Texture.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

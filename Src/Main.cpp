@@ -1,5 +1,7 @@
 
 #include "GLFWEW.h"
+#include "Texture.h"
+#include "FileNameList.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
@@ -9,20 +11,21 @@ struct Vertex
 {
 	glm::vec3 position; ///<座標
 	glm::vec4 color;	///<色データ
+	glm::vec2 texCoord;	///<テクスチャデータ.
 };
 /// 頂点データ.
 const Vertex vertices[] = {
-  { {-0.5f, -0.3f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f} },
-  { { 0.3f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
-  { { 0.3f,  0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f} },
-  { {-0.5f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+{ {-0.5f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
+{ { 0.3f, -0.3f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f}, { 1.0f, 0.0f} },
+{ { 0.3f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 1.0f, 1.0f} },
+{ {-0.5f,  0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f}, { 0.0f, 1.0f} },
 
-  { {-0.3f,  0.3f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f} },
-{ {-0.3f, -0.5f, 0.1f}, {0.0f, 1.0f, 1.0f, 1.0f} },
-{ { 0.5f, -0.5f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f} },
-{ { 0.5f, -0.5f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f} },
-{ { 0.5f,  0.3f, 0.1f}, {1.0f, 1.0f, 0.0f, 1.0f} },
-{ {-0.3f,  0.3f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f} },
+{ {-0.3f,  0.3f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 0.0f, 1.0f} },
+{ {-0.3f, -0.5f, 0.1f}, {0.0f, 1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
+{ { 0.5f, -0.5f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f}, { 1.0f, 0.0f} },
+{ { 0.5f, -0.5f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f}, { 1.0f, 0.0f} },
+{ { 0.5f,  0.3f, 0.1f}, {1.0f, 1.0f, 0.0f, 1.0f}, { 1.0f, 1.0f} },
+{ {-0.3f,  0.3f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f}, { 0.0f, 1.0f} },
 
 };
 
@@ -116,6 +119,7 @@ GLuint CreateVAO(GLuint vbo,GLuint ibo) {
 	*/
 	SetVertexAttribPointer(0, Vertex, position);
 	SetVertexAttribPointer(1, Vertex, color);
+	SetVertexAttribPointer(2,Vertex,texCoord);
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &vbo);
 	glDeleteBuffers(1,&ibo);
@@ -128,10 +132,13 @@ static const char* vsCode =
 "#version 410 \n"
 "layout(location=0) in vec3 vPosition;"
 "layout(location=1) in vec4 vColor;"
+"layout(location=2) in vec2 vTexCoord;"
 "layout(location=0) out vec4 outColor;"
+"layout(location=1) out vec2 outTexCoord;"
 "uniform mat4x4 matMVP;"
 "void main() {"
 "  outColor = vColor;"
+"  outTexCoord = vTexCoord;"
 "  gl_Position = matMVP * vec4(vPosition, 1.0);"
 "}";
 
@@ -139,9 +146,11 @@ static const char* vsCode =
 static const char* fsCode =
 "#version 410 \n"
 "layout(location=0) in vec4 inColor;"
+"layout(location=1) in vec2 inTexCoord;"
+"uniform sampler2D colorSampler;"
 "out vec4 fragColor;"
 "void main() {"
-"  fragColor = inColor;"
+"  fragColor = inColor * texture(colorSampler, inTexCoord);"
 "}";
 
 /**
@@ -233,8 +242,24 @@ int main()
 		return 1;
 	}
 
-	const GLint matMVPLoc = glGetUniformLocation(shaderProgram, "matMVP");
+	/// テクスチャデータ.
+		static const uint32_t textureData[] = {
+		0xffffffff, 0xffcccccc, 0xffffffff, 0xffcccccc, 0xffffffff,
+		0xff888888, 0xffffffff, 0xff888888, 0xffffffff, 0xff888888,
+		0xffffffff, 0xff444444, 0xffffffff, 0xff444444, 0xffffffff,
+		0xff000000, 0xffffffff, 0xff000000, 0xffffffff, 0xff000000,
+		0xffffffff, 0xff000000, 0xffffffff, 0xff000000, 0xffffffff,
+		};
+		TexturePtr tex = Texture::LoadFromFile(FILENAME_TGA_BACK);
+		TexturePtr tex2 = Texture::LoadFromFile(FILENAME_BMP_GEAR);
+		if (!tex ||!tex2) {
+		return 1;
+		
+	}
 
+
+	const GLint matMVPLoc = glGetUniformLocation(shaderProgram, "matMVP");
+	const GLint colorSamplerLoc = glGetUniformLocation(shaderProgram,"colorSampler");
 
 	while (!window.ShouldClose()) {
 		glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
@@ -254,6 +279,14 @@ int main()
 			glUniformMatrix4fv(matMVPLoc, 1, GL_FALSE, &matMVP[0][0]);
 
 		}
+		if (colorSamplerLoc >= 0) {
+			glUniform1i(colorSamplerLoc, 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, tex2->Id());
+			glBindTexture(GL_TEXTURE_2D, tex->Id());
+
+		}
+
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES,ARRAY_SIZE(indices),GL_UNSIGNED_INT,0);

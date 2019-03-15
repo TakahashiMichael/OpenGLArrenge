@@ -14,8 +14,13 @@
 */
 
 
-#define FILENAME_SAMPLE_ "";
+#define FILENAME_SAMPLE_ ""
 
 
+//BMP
+#define FILENAME_BMP_GEAR "Res/Texture/Gear.bmp"
+
+//TGA
+#define FILENAME_TGA_BACK "Res/Texture/TitleBack.tga"
 
 #endif // !FILENAMELIST_H_INCLUDED
