@@ -1,0 +1,13 @@
+glm::について、関数のまとめでもいいと思います
+
+#include <glm/gtc/matrix_transform.hpp>
+座標変換用のlib
+
+透視投影を行う座標変換行列.←手前の物は大きく逆はryってやつ
+glm::mat4x4 glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+//(視野角(縦),横を決めるアスペクト比←window.w/window.yで良い,手前限界,奥限界)
+
+ワールド座標系からビュー座標系への変換(カメラの設定)
+glm::mat4x4 glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+//(position,targetpos,up(上の角度))
+const glm::mat4x4 matMVP = matProj * matView;

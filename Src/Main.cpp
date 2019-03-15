@@ -1,8 +1,10 @@
 
 #include "GLFWEW.h"
 #include <iostream>
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+
+#define ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
 struct Vertex
 {
 	glm::vec3 position; ///<座標
@@ -10,10 +12,27 @@ struct Vertex
 };
 /// 頂点データ.
 const Vertex vertices[] = {
-	{ {-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
-	{ { 0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f} },
-	{ { 0.0f,  0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f} },
+  { {-0.5f, -0.3f, 0.5f}, {0.0f, 1.0f, 0.0f, 1.0f} },
+  { { 0.3f, -0.3f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+  { { 0.3f,  0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f} },
+  { {-0.5f,  0.5f, 0.5f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+
+  { {-0.3f,  0.3f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+{ {-0.3f, -0.5f, 0.1f}, {0.0f, 1.0f, 1.0f, 1.0f} },
+{ { 0.5f, -0.5f, 0.1f}, {0.0f, 0.0f, 1.0f, 1.0f} },
+{ { 0.5f, -0.5f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f} },
+{ { 0.5f,  0.3f, 0.1f}, {1.0f, 1.0f, 0.0f, 1.0f} },
+{ {-0.3f,  0.3f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f} },
+
 };
+
+/// インデックスデータ.
+const GLuint indices[] = {
+  0, 1, 2, 2, 3, 0,
+  4,5,6,7,8,9,
+};
+
+
 
 /*
 * VBOを作成する
@@ -32,6 +51,27 @@ GLuint CreateVBO(GLsizeiptr size,const GLvoid* data) {
 
 	return vbo;
 }
+
+/**
+* Index Buffer Objectを作成する.
+*
+* @param size インデックスデータのサイズ.
+* @param data インデックスデータへのポインタ.
+*
+* @return 作成したIBO.
+*/
+GLuint CreateIBO(GLsizeiptr size, const GLvoid* data)
+{
+	GLuint ibo = 0;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	return ibo;
+}
+
+
+
 
 /**
 * 頂点アトリビュートを設定する.
@@ -53,6 +93,8 @@ void SetVertexAttribPointerI(
 	glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointer);
 }
 
+
+
 /*
 * vertex Array Objectを作成する.
 *
@@ -62,11 +104,12 @@ void SetVertexAttribPointerI(
 *
 *
 */
-GLuint CreateVAO(GLuint vbo) {
+GLuint CreateVAO(GLuint vbo,GLuint ibo) {
 	GLuint vao = 0;
 	glGenVertexArrays(1,&vao);//(作成個数,idのポインタ)
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,ibo);
 	/*SetVertexAttribPointer(n,str,str::meb)
 	* glEnableVertexAttribArray(n),
 	* glVertexAttribPointer(n,メンバサイズ,GL_FLOAT,GL_FALSE,構造体サイズ,dataoffset);
@@ -75,6 +118,7 @@ GLuint CreateVAO(GLuint vbo) {
 	SetVertexAttribPointer(1, Vertex, color);
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1,&ibo);
 	return vao;
 
 }
@@ -85,9 +129,10 @@ static const char* vsCode =
 "layout(location=0) in vec3 vPosition;"
 "layout(location=1) in vec4 vColor;"
 "layout(location=0) out vec4 outColor;"
+"uniform mat4x4 matMVP;"
 "void main() {"
 "  outColor = vColor;"
-"  gl_Position = vec4(vPosition, 1.0);"
+"  gl_Position = matMVP * vec4(vPosition, 1.0);"
 "}";
 
 /// フラグメントシェーダ.
@@ -180,20 +225,38 @@ int main()
 
 	}
 	const GLuint vbo = CreateVBO(sizeof(vertices), vertices);
-	const GLuint vao = CreateVAO(vbo);
+	const GLuint ibo = CreateIBO(sizeof(indices),indices);
+	const GLuint vao = CreateVAO(vbo,ibo);
+
 	const GLuint shaderProgram = CreateShaderProgram(vsCode, fsCode);
-	if (!vbo || !vao || !shaderProgram) {
+	if (!vbo || !vao ||!ibo|| !shaderProgram) {
 		return 1;
 	}
+
+	const GLint matMVPLoc = glGetUniformLocation(shaderProgram, "matMVP");
 
 
 	while (!window.ShouldClose()) {
 		glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glEnable(GL_DEPTH_TEST);
+
 		glUseProgram(shaderProgram);
+		// 座標変換行列を作成してシェーダに転送する.
+		if (matMVPLoc >= 0) {
+			const glm::mat4x4 matProj =
+				glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+			const glm::mat4x4 matView =
+				glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			const glm::mat4x4 matMVP = matProj * matView;
+			//注意点.UseProgram()で対象プログラムが設定されていないとダメ.
+			glUniformMatrix4fv(matMVPLoc, 1, GL_FALSE, &matMVP[0][0]);
+
+		}
+
 		glBindVertexArray(vao);
-		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(vertices[0]));
+		glDrawElements(GL_TRIANGLES,ARRAY_SIZE(indices),GL_UNSIGNED_INT,0);
 
 
 		window.SwapBuffers();

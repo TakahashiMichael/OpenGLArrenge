@@ -50,6 +50,12 @@
     <Text Include="Res\memo\AboutGLSL.txt">
       <Filter>リソース ファイル\Memo</Filter>
     </Text>
+    <Text Include="Res\memo\Ver3memo.txt">
+      <Filter>リソース ファイル\Memo</Filter>
+    </Text>
+    <Text Include="Res\memo\AboutGLM.txt">
+      <Filter>リソース ファイル\Memo</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Main.cpp">

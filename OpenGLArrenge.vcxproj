@@ -143,9 +143,11 @@
     <ClInclude Include="Src\GLFWEW.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Res\memo\AboutGLM.txt" />
     <Text Include="Res\memo\AboutGLSL.txt" />
     <Text Include="Res\memo\Ver1memo.txt" />
     <Text Include="Res\memo\Ver2memo.txt" />
+    <Text Include="Res\memo\Ver3memo.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\GLFWEW.cpp" />

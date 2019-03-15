@@ -1,0 +1,75 @@
+//第三回
+インデックスバッファー
+作成手順はvboと同じ,glenumがGL_ELEMENT_ARRAY_BUFFERに変わっただけである.
+	GLuint ibo = 0;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+
+//IBOを作成したことによってVAOにIBOを割り当てなければいけない
+
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);//vaoにインデックスを設定する
+
+glDeleteBuffers(ibo);//vbo同様削除予約してもよい
+
+削除処理必要である
+
+
+//描画周りの変化
+glDrawArraysは現在bindされているvaoの先頭から決まった数の頂点を描画する物であった,
+
+iboを使用する場合は
+glDrawElements(enum(GL_TRIANGLES),iboサイズ(描画する数),ibo単体のデータ型(GL_UNSIGNED_INT等),iboのオフセット)
+
+
+//注意点.
+iboは頂点データを共有してしまう弱点がある
+これはテクスチャ座標などを共有するとまずかったりすることがある
+
+
+uniform変数について.
+シェーダープログラムオブジェクトに変数を設定する際に必要である
+uniform変数はシェーダーで宣言シェーダー内のmain関数でも使用可能
+アプリ型から値を送るためにはやや複雑な処理が必要である.
+
+①,GLint 型でuniform変数の位置を取得する(例)
+const GLint matMVPLoc = glGetUniformLocation(shaderProgram, "matMVP");//(対象のシェーダ,uniform変数の"変数名")
+
+②,データを送信したいタイミングで
+glUNiform????を呼び出しデータを送信(例)
+glUniformmMatrix4fv(matMVPLoc,1,GL_FALSE,&matMVP[0][0]);<<(送るuniformの位置,個数,正規化するか否か,送るデータのオフセット)
+
+変数の型に合わせて関数も変えないといけない.
+
+※補足useProgram()で対象のシェーダーオブジェクトが設定されていない場合は失敗する.
+uniform変数はgetuniformloc関数で取得する際に失敗したら-1が返ってくる
+
+
+//座標変換(座標系のお話は資料を見た方がわかりやすい)
+
+
+MVP行列という概念
+Model
+View
+Projection
+
+の略なのだが,glmの機能で v,pと分けれる,これはglmメモを参照してください
+ const glm::mat4x4 matProj =
+   glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+ const glm::mat4x4 matView =
+   glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+ const glm::mat4x4 matMVP = matProj * matView;
+
+
+
+ //深度バッファという概念.z軸によってどちらを手前に置くか決めるお利巧機能.
+ glEnable()関数の引数を
+ GL_DEPTH_TESTにせっていすることで設定が可能
+
+ 対象に
+ glDisable()関数があれである
+
+ GL_CULL_FACE　等の引数もある←ポリゴン裏を描画しなくなる.
