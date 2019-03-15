@@ -1,1 +1,38 @@
-//
+//第一回おさらい
+
+
+OpenGLの初期化は本来であれば
+//コンテキストの作成.
+//関数ポインタをグラフィックスドライバから取得
+等の作業が必要になる
+
+講義でここまではできないのでGLFW,GLEWというライブラリを使っていく
+
+
+windowではopengl32.libというファイルをリンカー設定すると基本的な関数が使用可能になる
+
+//初期化について
+ErrorCallBack関数を登録する
+
+//FWの初期化
+glfwInit()		///<戻り値が GL_TRUEなら成功
+
+GLFWwindow* window = glfwCreateWindow(w,h,t,ptr,ptr);<<描画するwindowの作成.
+
+glfwMakeContextCurrent(window*); <<引数のwindowを描画対象に設定する.
+
+
+//終了処理
+glfwTerminate();		///<<忘れないように
+
+//EWの初期化
+glewInit()			///<戻り値がGLEW_OKなら成功
+
+
+描画処理.
+glfwWindowShouldlose(window*)<<ウィンドを閉じるかどうか調べる.
+glClearColor();				<<塗りつぶす色を設定する
+glClear();					<<塗りつぶしを実行する(*対象バッファを選択する場合が後に出てくる.)
+glfwPollEvents();			<<イベント関数を呼ばなければいけない
+glfwSwapBuffers(window*);	<<バッファーを入れ替える
+

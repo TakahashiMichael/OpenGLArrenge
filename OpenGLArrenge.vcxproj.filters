@@ -22,6 +22,9 @@
     <Filter Include="Docment">
       <UniqueIdentifier>{702187d2-e338-4469-be99-0f0f24cbabbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{815e9339-e045-4e63-89c2-cf4941c4a106}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -29,6 +32,12 @@
   <ItemGroup>
     <ClInclude Include="Src\FileNameList.h">
       <Filter>Docment</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GLFWEW.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GamePad.h">
+      <Filter>System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +48,9 @@
   <ItemGroup>
     <ClCompile Include="Src\Main.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GLFWEW.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

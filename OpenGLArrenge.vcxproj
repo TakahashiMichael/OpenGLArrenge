@@ -139,11 +139,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\FileNameList.h" />
+    <ClInclude Include="Src\GamePad.h" />
+    <ClInclude Include="Src\GLFWEW.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Res\memo\Ver1memo.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\GLFWEW.cpp" />
     <ClCompile Include="Src\Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
