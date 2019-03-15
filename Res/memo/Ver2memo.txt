@@ -1,0 +1,118 @@
+
+第二回のメモ
+OpenGLのプリミティブは頂点データには16のパラメータ(8~64bitまで)
+を設定することが可能
+
+データを設定する必要はあるが.
+
+
+VBOオブジェクト
+頂点データを格納しておくバッファー
+破棄処理必要
+
+VAOオブジェクト
+VBOオブジェクトを参照しデータ列の並びがどういう役割なのかを設定する
+描画にはVAOオブジェクトを使う
+破棄処理必要
+
+ShaderProgramについて
+文字列をコンパイルする関数で最低でも
+VertexShader
+FragmentShader
+を作成しないといけない(*文字列::違う言語のコードをコンパイルするためC++では書けない);
+
+それぞれのShaderObjectを合わせた
+ProgramObjectを作成する.<<
+各シェーダ破棄処理必要
+プログラム破棄処理必要
+
+
+//描画の方法について
+前回のループの中に
+glUseProgram(作成したProgObjId);
+glBindVertexarray(作成したvao);
+glDrawArrays(プリミティブの種類(ほとんどの場合GL_TRIANGLES),描画する頂点数);
+
+で登録したvaoオブジェクトの最初から決められた頂点数描画することができる.
+
+
+
+
+//各オブジェクトの作成について.
+※VBO 
+受け皿のgluint 型を作成
+  GLuint vbo = 0;
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);//割り当てた後にBufferData
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);		//登録データ全体のサイズ,登録するデータのバイトオフセット
+  glBindBuffer(GL_ARRAY_BUFFER, 0);				//最後に割り当ての解除
+
+
+ 
+※VAO
+  GLuint vao = 0;//受け皿の作成
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glEnableVertexAttribArray(index);			//番号...0番目に頂点,1番目に色,みたいなn番目の値
+  glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride, pointer);
+  //設定する番号,メンバのサイズ,サイズ一個あたりが何型か,正規化を行うか否か,構造体自体のサイズ,構造体に対するメンバのバイトオフセット,
+  //
+  //更に登録する値があるならEnableVとAttribPを繰り返す.
+
+  glBindVertexArray(0);	//割り当ての解除
+  glDeleteBuffers(1, &vbo);//今でなくてもいいがこのタイミングでdelete予約しておけばvaoを削除した時に一緒に殺してくれる.
+
+
+
+  //SahderProgramについて
+  GLuint shader = glCreateShader(type);//引数にverとかfraとか.
+  glShaderSource(shader, 1, &string, nullptr);//(番号割り当て,作成個数,コード,???);
+  glCompileShader(shader);//idのシェーダをコンパイルする.f
+
+  作成はこれだけでいい.失敗を検知しようと思うとどうしてもながくなる
+    if (!compiled) {
+    GLint infoLen = 0;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+    if (infoLen) {
+      std::vector<char> buf;
+      buf.resize(infoLen);
+      if (static_cast<int>(buf.size()) >= infoLen) {
+        glGetShaderInfoLog(shader, infoLen, NULL, buf.data());
+        std::cerr << "ERROR: シェーダのコンパイルに失敗￥n" << buf.data() << std::endl;
+      }
+    }
+    glDeleteShader(shader);
+
+
+
+
+
+	//シェーダーのリンクについて.
+	上で説明したのは各シェーダの作成である
+	各シェーダをリンクしたプログラムオブジェクトが描画には必要となるので
+	作成した各シェーダをリンクする必要がある
+	  GLuint program = glCreateProgram();
+  glAttachShader(program, fs);
+  glDeleteShader(fs);
+  glAttachShader(program, vs);
+  glDeleteShader(vs);
+  glLinkProgram(program);
+
+  こちらもシェーダープログラム作成だけならこれでok
+  やはり失敗を検知するのでそこそこ長くなるのだ
+
+    GLint linkStatus = GL_FALSE;
+  glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+  if (linkStatus != GL_TRUE) {
+    GLint infoLen = 0;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &infoLen);
+    if (infoLen) {
+      std::vector<char> buf;
+      buf.resize(infoLen);
+      if (static_cast<int>(buf.size()) >= infoLen) {
+        glGetProgramInfoLog(program, infoLen, NULL, buf.data());
+        std::cerr << "ERROR: シェーダのリンクに失敗￥n"<< buf.data() << std::endl;
+      }
+    }
+    glDeleteProgram(program);
