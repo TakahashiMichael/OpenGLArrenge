@@ -135,52 +135,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Scr\Debug.cpp" />
-    <ClCompile Include="Scr\Entity.cpp" />
-    <ClCompile Include="Scr\Function.cpp" />
-    <ClCompile Include="Scr\GLFWEW.cpp" />
-    <ClCompile Include="Scr\Main.cpp" />
-    <ClCompile Include="Scr\Mesh.cpp" />
-    <ClCompile Include="Scr\OffscreenBuffer.cpp" />
-    <ClCompile Include="Scr\SaveImage.cpp" />
-    <ClCompile Include="Scr\Shader.cpp" />
-    <ClCompile Include="Scr\Texture.cpp" />
-    <ClCompile Include="Scr\UniformBuffer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Res\Shader\ColorFilter.frag" />
-    <None Include="Res\Shader\ColorFilter.vert" />
-    <None Include="Res\Shader\Posterization.frag" />
-    <None Include="Res\Shader\Posterization.vert" />
-    <None Include="Res\Shader\Simple.frag" />
-    <None Include="Res\Shader\Simple.vert" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Res\memo\FunctionList.txt" />
-    <Text Include="Res\memo\Question.txt" />
+    <ClInclude Include="Src\FileNameList.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Scr\Debug.h" />
-    <ClInclude Include="Scr\Entity.h" />
-    <ClInclude Include="Scr\Function.h" />
-    <ClInclude Include="Scr\Geometry.h" />
-    <ClInclude Include="Scr\GLFWEW.h" />
-    <ClInclude Include="Scr\LoadFileName.h" />
-    <ClInclude Include="Scr\Mesh.h" />
-    <ClInclude Include="Scr\OffscreenBuffer.h" />
-    <ClInclude Include="Scr\SaveImage.h" />
-    <ClInclude Include="Scr\Shader.h" />
-    <ClInclude Include="Scr\Texture.h" />
-    <ClInclude Include="Scr\UniformBuffer.h" />
+    <Text Include="Res\memo\Ver1memo.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Res\Texture\Bullet.tga" />
-    <Image Include="Res\Texture\Cart.tga" />
-    <Image Include="Res\Texture\Cart2D.tga" />
-    <Image Include="Res\Texture\Day.tga" />
-    <Image Include="Res\Texture\House.tga" />
-    <Image Include="Res\Texture\White.tga" />
+    <ClCompile Include="Src\Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

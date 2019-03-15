@@ -19,127 +19,26 @@
     <Filter Include="リソース ファイル\Shader">
       <UniqueIdentifier>{643dde8b-b731-4e66-927d-8fe5731e0bc0}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Scr\Main.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\GLFWEW.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Debug.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Texture.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Shader.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\OffscreenBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\UniformBuffer.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Mesh.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\SaveImage.cpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Entity.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Scr\Function.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
+    <Filter Include="Docment">
+      <UniqueIdentifier>{702187d2-e338-4469-be99-0f0f24cbabbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Res\Shader\Simple.vert">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
-    <None Include="Res\Shader\Simple.frag">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
-    <None Include="Res\Shader\ColorFilter.vert">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
-    <None Include="Res\Shader\ColorFilter.frag">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
-    <None Include="Res\Shader\Posterization.vert">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
-    <None Include="Res\Shader\Posterization.frag">
-      <Filter>リソース ファイル\Shader</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Res\memo\FunctionList.txt">
-      <Filter>リソース ファイル\Memo</Filter>
-    </Text>
-    <Text Include="Res\memo\Question.txt">
+    <ClInclude Include="Src\FileNameList.h">
+      <Filter>Docment</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Res\memo\Ver1memo.txt">
       <Filter>リソース ファイル\Memo</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Scr\GLFWEW.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Geometry.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Debug.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Texture.h">
+    <ClCompile Include="Src\Main.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\LoadFileName.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Shader.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\OffscreenBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\UniformBuffer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Mesh.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\SaveImage.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Entity.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Scr\Function.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Res\Texture\Bullet.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Res\Texture\Cart.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Res\Texture\Cart2D.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Res\Texture\Day.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Res\Texture\House.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Res\Texture\White.tga">
-      <Filter>リソース ファイル</Filter>
-    </Image>
+    </ClCompile>
   </ItemGroup>
 </Project>
