@@ -1,0 +1,87 @@
+//第五回メモ
+テキストファイルからシェーダのコンパイルを実装
+ここはある程度理解しているので言及はしない
+
+
+
+//オフスクリーンバッファ
+鬼門である
+
+<オフスクリーンバッファとはバッファでもありテクスチャでもある!!>
+
+クラスの構成は
+メンバに
+*TextureId
+*DepthBufferId
+*FrameBufferId
+のオブジェクトを持ち
+ゲッターで
+テクスチャとフレームバッファのIDを取得できる.
+
+// 深度バッファを作成する.
+glGenRenderbuffers(1, &offscreen->depthbuffer);
+glBindRenderbuffer(GL_RENDERBUFFER, offscreen->depthbuffer);
+glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, w, h);
+glBindRenderbuffer(GL_RENDERBUFFER, 0);
+深度バッファは関数とenumさえ覚えればほぼ作成は同じ
+値を設定するglRenderbufferStorage(enum,深度の精度16bit24bit32bit,w,h),
+
+
+
+// フレームバッファを作成する.
+glGenFramebuffers(1, &offscreen->framebuffer);
+glBindFramebuffer(GL_FRAMEBUFFER, offscreen->framebuffer);
+glFramebufferRenderbuffer(
+  GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, offscreen->depthbuffer);
+glFramebufferTexture2D(
+  GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreen->tex->Id(), 0);
+glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+使用するときの注意点
+
+glBindFramebuffer(GL_FRAMEBUFFER,ofscreenId);//によってoffscreenを割り当てる.
+
+その場合今後全ての描画処理,またはclear処理がoffscreenに描画される.
+
+そしてデフォルトに戻すときは
+
+glBindFramebuffer(GL_FRAMEBUFFER,0)//これでデフォルトに戻る.
+
+
+
+
+
+//描画を部分的にする
+
+RenderPartの作成
+後にこれにプリミティブの種類とか追加すればいいと思う
+
+
+
+
+<超重要>
+UBO!UBO!UBO
+//InterfaceBlock UBO(uniform block object)
+
+
+UBOの使用に必要な手順
+①シェーダーにInterfaceBlockを作成し普通に計算に使う
+②シェーダー側のInterfaceBlockと同じ型構成のstructをアプリ側で作成する.
+③UBOバッファを作成する(その際にstructのサイズを指定する);
+④シェーダプログラムからUniformBlockの位置を取得する.<<
+⑤glUniformBlockBinding(shaderId,uboIndex,バインディングポイント);<<でバインディングポイントを設定する.
+⑥uboをバインディングポイントに割り当てる glBindBufferBase(GL_UNIFORM_BUFFER,バインディングポイント,ubo);
+⑦データを送信する glBufferSubData(GLUNIFORM_BUFFER,,構造体のサイズ,バイトオフセット.);
+
+
+
+GLuint CreateUBO(GLsizeiptr size, const GLvoid* data = nullptr)
+{
+  GLuint ubo;
+  glGenBuffers(1, &ubo);
+  glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+  glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STREAM_DRAW);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  return ubo;
+}

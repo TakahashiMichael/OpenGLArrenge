@@ -25,6 +25,7 @@ namespace GLFWEW {
 		void InitTimer();
 		void UpdateTimer();
 		double DeltaTime() const;
+		const glm::vec2& GetSize()const { return size; }
 
         bool IsKeyDown(int key) const;
         bool IsKeyPressed(int key) const;
@@ -63,6 +64,7 @@ namespace GLFWEW {
 		GLFWwindow* window = nullptr;
         double previousTime = 0;
         double deltaTime = 0;
+		glm::vec2 size;
 
         enum class KeyState : char {
           release,

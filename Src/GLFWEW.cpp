@@ -93,6 +93,7 @@ bool Window::Init(int w, int h, const char* title)
 	}
 
     glDebugMessageCallback(OutputGLDebugMessage, nullptr);
+	size = glm::vec2(w,h);
 
 	const GLubyte* renderer = glGetString(GL_RENDERER);
 	std::cout << "Renderer: " << renderer << std::endl;

@@ -2,10 +2,11 @@
 #include "GLFWEW.h"
 #include "Texture.h"
 #include "FileNameList.h"
+#include "Shader.h"
+#include "OffscreenBuffer.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
-
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof((a)[0]))
 struct Vertex
 {
@@ -27,12 +28,58 @@ const Vertex vertices[] = {
 { { 0.5f,  0.3f, 0.1f}, {1.0f, 1.0f, 0.0f, 1.0f}, { 1.0f, 1.0f} },
 { {-0.3f,  0.3f, 0.1f}, {1.0f, 0.0f, 0.0f, 1.0f}, { 0.0f, 1.0f} },
 
+
+{ {-1.0f,-1.0f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}, { 1.0f, 0.0f} },
+{ { 1.0f,-1.0f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}, { 0.0f, 0.0f} },
+{ { 1.0f, 1.0f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}, { 0.0f, 1.0f} },
+{ {-1.0f, 1.0f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f}, { 1.0f, 1.0f} },
+
 };
 
 /// インデックスデータ.
 const GLuint indices[] = {
   0, 1, 2, 2, 3, 0,
   4,5,6,7,8,9,
+  10,11,12,12,13,10,
+};
+
+/// 頂点シェーダのパラメータ型.
+struct VertexData
+{
+	glm::mat4 matMVP;
+	glm::vec4 lightPosition;
+	glm::vec4 lightColor;
+	glm::vec4 ambientColor;
+};
+
+
+/**
+* 部分描画データ.
+*/
+struct RenderingPart
+{
+	GLvoid* offset; ///< 描画開始インデックスのバイトオフセット.
+	GLsizei size; ///< 描画するインデックス数.
+};
+
+/**
+* RenderingPartを作成する.
+*
+* @param offset 描画開始インデックスのオフセット(インデックス単位).
+* @param size 描画するインデックス数.
+*
+* @return 作成した部分描画オブジェクト.
+*/
+constexpr RenderingPart MakeRenderingPart(GLsizei offset, GLsizei size) {
+	return { reinterpret_cast<GLvoid*>(offset * sizeof(GLuint)), size };
+}
+
+/**
+* 部分描画データリスト.
+*/
+static const RenderingPart renderingParts[] = {
+  MakeRenderingPart(0, 12),
+  MakeRenderingPart(12, 6),
 };
 
 
@@ -127,31 +174,25 @@ GLuint CreateVAO(GLuint vbo,GLuint ibo) {
 
 }
 
-/// 頂点シェーダ.
-static const char* vsCode =
-"#version 410 \n"
-"layout(location=0) in vec3 vPosition;"
-"layout(location=1) in vec4 vColor;"
-"layout(location=2) in vec2 vTexCoord;"
-"layout(location=0) out vec4 outColor;"
-"layout(location=1) out vec2 outTexCoord;"
-"uniform mat4x4 matMVP;"
-"void main() {"
-"  outColor = vColor;"
-"  outTexCoord = vTexCoord;"
-"  gl_Position = matMVP * vec4(vPosition, 1.0);"
-"}";
+/**
+* Uniform Block Objectを作成する.
+*
+* @param size Uniform Blockのサイズ.
+* @param data Uniform Blockに転送するデータへのポインタ.
+*
+* @return 作成したUBO.
+*/
+GLuint CreateUBO(GLsizeiptr size, const GLvoid* data = nullptr)
+{
+	GLuint ubo;
+	glGenBuffers(1, &ubo);
+	glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+	glBufferData(GL_UNIFORM_BUFFER, size, data, GL_STREAM_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	return ubo;
+}
 
-/// フラグメントシェーダ.
-static const char* fsCode =
-"#version 410 \n"
-"layout(location=0) in vec4 inColor;"
-"layout(location=1) in vec2 inTexCoord;"
-"uniform sampler2D colorSampler;"
-"out vec4 fragColor;"
-"void main() {"
-"  fragColor = inColor * texture(colorSampler, inTexCoord);"
-"}";
+
 
 /**
 * シェーダコードをコンパイルする.
@@ -236,32 +277,37 @@ int main()
 	const GLuint vbo = CreateVBO(sizeof(vertices), vertices);
 	const GLuint ibo = CreateIBO(sizeof(indices),indices);
 	const GLuint vao = CreateVAO(vbo,ibo);
+	const GLuint ubo = CreateUBO(sizeof(VertexData));
 
-	const GLuint shaderProgram = CreateShaderProgram(vsCode, fsCode);
-	if (!vbo || !vao ||!ibo|| !shaderProgram) {
+	const GLuint shaderProgram = Shader::CreateProgramFromFile(FILENAME_VERT_TUTORIAL,FILENAME_FRAG_TUTORIAL);
+	if (!vbo || !vao ||!ibo|| !ubo || !shaderProgram) {
 		return 1;
 	}
 
-	/// テクスチャデータ.
-		static const uint32_t textureData[] = {
-		0xffffffff, 0xffcccccc, 0xffffffff, 0xffcccccc, 0xffffffff,
-		0xff888888, 0xffffffff, 0xff888888, 0xffffffff, 0xff888888,
-		0xffffffff, 0xff444444, 0xffffffff, 0xff444444, 0xffffffff,
-		0xff000000, 0xffffffff, 0xff000000, 0xffffffff, 0xff000000,
-		0xffffffff, 0xff000000, 0xffffffff, 0xff000000, 0xffffffff,
-		};
-		TexturePtr tex = Texture::LoadFromFile(FILENAME_TGA_BACK);
-		TexturePtr tex2 = Texture::LoadFromFile(FILENAME_BMP_GEAR);
-		if (!tex ||!tex2) {
-		return 1;
-		
+
+	TexturePtr tex = Texture::LoadFromFile(FILENAME_TGA_BACK);
+	TexturePtr tex2 = Texture::LoadFromFile(FILENAME_BMP_GEAR);
+	if (!tex ||!tex2) {
+	return 1;
+	
 	}
+	//シェーダーからuboの位置を取得する.
+	const GLuint uboIndex = glGetUniformBlockIndex(shaderProgram,"VertexData");
+	if (uboIndex == GL_INVALID_INDEX) {
+		return 1;
+	}
+	//必ず理解しないといけない関数.
+	glUniformBlockBinding(shaderProgram,uboIndex,0);
+	GLint maxubosize;
+	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS,&maxubosize);
+	std::cout << "設定できるUBOのバインディングポイントの数を表示:" << (size_t)maxubosize << std::endl;
 
+	const OffscreenBufferPtr offscreen = OffscreenBuffer::Create(window.GetSize().x,window.GetSize().y);
 
-	const GLint matMVPLoc = glGetUniformLocation(shaderProgram, "matMVP");
 	const GLint colorSamplerLoc = glGetUniformLocation(shaderProgram,"colorSampler");
 
 	while (!window.ShouldClose()) {
+		glBindFramebuffer(GL_FRAMEBUFFER,offscreen->GetFramebuffer());
 		glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -269,16 +315,22 @@ int main()
 
 		glUseProgram(shaderProgram);
 		// 座標変換行列を作成してシェーダに転送する.
-		if (matMVPLoc >= 0) {
-			const glm::mat4x4 matProj =
-				glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-			const glm::mat4x4 matView =
-				glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-			const glm::mat4x4 matMVP = matProj * matView;
-			//注意点.UseProgram()で対象プログラムが設定されていないとダメ.
-			glUniformMatrix4fv(matMVPLoc, 1, GL_FALSE, &matMVP[0][0]);
+		const glm::mat4x4 matProj =
+			glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		const glm::mat4x4 matView =
+			glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		const glm::mat4x4 matMVP = matProj * matView;
+		//注意点.UseProgram()で対象プログラムが設定されていないとダメ.
+		VertexData vertexData;
+		vertexData.matMVP = matProj * matView;
+		vertexData.lightPosition = glm::vec4(1, 1, 1, 1);
+		vertexData.lightColor = glm::vec4(2, 2, 2, 1);
+		vertexData.ambientColor = glm::vec4(0.05f, 0.1f, 0.2f, 1);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(VertexData), &vertexData);
 
-		}
+
+
 		if (colorSamplerLoc >= 0) {
 			glUniform1i(colorSamplerLoc, 0);
 			glActiveTexture(GL_TEXTURE0);
@@ -289,12 +341,28 @@ int main()
 
 
 		glBindVertexArray(vao);
-		glDrawElements(GL_TRIANGLES,ARRAY_SIZE(indices),GL_UNSIGNED_INT,0);
+		glDrawElements(GL_TRIANGLES,renderingParts[0].size,GL_UNSIGNED_INT,renderingParts[0].offset);
 
+
+		glBindFramebuffer(GL_FRAMEBUFFER,0);
+		glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (colorSamplerLoc >= 0) {
+			glBindTexture(GL_TEXTURE_2D,offscreen->GetTexture());
+		}
+			
+		vertexData = {};
+		vertexData.matMVP = glm::mat4(1);
+		vertexData.ambientColor = glm::vec4(1, 1, 1, 1);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(VertexData), &vertexData);
+
+		glDrawElements(
+			GL_TRIANGLES,renderingParts[1].size,
+			GL_UNSIGNED_INT,renderingParts[1].offset);
 
 		window.SwapBuffers();
 	}
-
+	glDeleteBuffers(1, &ubo);
 	glDeleteProgram(shaderProgram);
 	glDeleteVertexArrays(1, &vao);
 

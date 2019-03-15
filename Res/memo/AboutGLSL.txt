@@ -49,3 +49,34 @@ glUniformi(locationid,テクスチャイメージユニットの番号);
 になる
 その後テクスチャイメージユニットにテクスチャを割り当て
 描画するといった段取りとなる
+
+
+
+InterfaceBlock または uniformBlock
+uniform変数の構造体のようなものなのだが
+送信方法が相当難しくなる
+uniform変数
+アプリ側で位置を取得
+専用uniform変数でデータの送信.
+だったのに対して
+
+uniformBlockは
+uniformBlockの位置の取得
+uniformBlockの位置とバインディングポイントを関連付ける
+
+uboを作成
+uboとバインディングポイントを関連付ける
+uboを通してバインディングポイントにデータを送信する.
+
+こんな感じになる
+
+テクスチャのイメージユニットみたいに一個バッファを噛ますような感じ
+これによって,上手く行かないことが続出するのだ,
+
+
+
+//dot()関数　そのまんま内積 float dot(Vec3 A,Vec3 B)戻り値 A ・ B
+
+//clamp()関数 第一引数の値をA,Bの間に収める float clamp(float f,float A,float B)<<戻り値fがA以下ならA,B以上ならBを代入して返す
+
+//normalize()関数 引数を単位ベクトルに変換する

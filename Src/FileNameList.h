@@ -16,6 +16,11 @@
 
 #define FILENAME_SAMPLE_ ""
 
+//Shader
+#define FILENAME_VERT_TUTORIAL "Res/Shader/Tutorial.vert"
+
+#define FILENAME_FRAG_TUTORIAL "Res/Shader/Tutorial.frag"
+
 
 //BMP
 #define FILENAME_BMP_GEAR "Res/Texture/Gear.bmp"
