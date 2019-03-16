@@ -2,11 +2,13 @@
 
 
 #include "Shader.h"
+#include "UniformBuffer.h"
 #include <vector>
 #include <iostream>
 #include <cstdint>
 #include <stdio.h>
 #include <sys/stat.h>
+
 
 namespace Shader {
 	/**
@@ -234,10 +236,10 @@ namespace Shader {
 	* @retval true  Š„‚è“–‚Ä¬Œ÷.
 	* @retval false Š„‚è“–‚Ä¸”s.
 	*/
-	//bool Program::UniformBlockBinding(const UniformBuffer& object)
-	//{
-	//	return UniformBlockBinding(object.Name().c_str(), object.BindingPoint());
-	//}
+	bool Program::UniformBlockBinding(const UniformBuffer& object)
+	{
+		return UniformBlockBinding(object.Name().c_str(), object.BindingPoint());
+	}
 
 
 	/**

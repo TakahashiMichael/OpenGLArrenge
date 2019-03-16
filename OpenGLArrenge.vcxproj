@@ -138,6 +138,8 @@
     <None Include="packages.config" />
     <None Include="Res\Shader\Tutorial.frag" />
     <None Include="Res\Shader\Tutorial.vert" />
+    <None Include="Res\Shader\Tutorial2.frag" />
+    <None Include="Res\Shader\Tutorial2.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\FileNameList.h" />
@@ -146,6 +148,7 @@
     <ClInclude Include="Src\OffscreenBuffer.h" />
     <ClInclude Include="Src\Shader.h" />
     <ClInclude Include="Src\Texture.h" />
+    <ClInclude Include="Src\UniformBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Res\memo\AboutGLM.txt" />
@@ -155,6 +158,7 @@
     <Text Include="Res\memo\Ver3memo.txt" />
     <Text Include="Res\memo\Ver4memo.txt" />
     <Text Include="Res\memo\Ver5memo.txt" />
+    <Text Include="Res\memo\Ver6memo.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\GLFWEW.cpp" />
@@ -162,6 +166,7 @@
     <ClCompile Include="Src\OffscreenBuffer.cpp" />
     <ClCompile Include="Src\Shader.cpp" />
     <ClCompile Include="Src\Texture.cpp" />
+    <ClCompile Include="Src\UniformBuffer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
