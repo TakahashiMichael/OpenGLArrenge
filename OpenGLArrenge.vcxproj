@@ -136,14 +136,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Res\memo\Tutorial3.frag" />
-    <None Include="Res\memo\Tutorial3.vert" />
     <None Include="Res\Shader\Tutorial.frag" />
     <None Include="Res\Shader\Tutorial.vert" />
     <None Include="Res\Shader\Tutorial2.frag" />
     <None Include="Res\Shader\Tutorial2.vert" />
+    <None Include="Res\Shader\Tutorial3.frag" />
+    <None Include="Res\Shader\Tutorial3.vert" />
+    <None Include="Res\Shader\Tutorial4.frag" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Entity.h" />
     <ClInclude Include="Src\FileNameList.h" />
     <ClInclude Include="Src\GamePad.h" />
     <ClInclude Include="Src\GLFWEW.h" />
@@ -163,8 +165,10 @@
     <Text Include="Res\memo\Ver5memo.txt" />
     <Text Include="Res\memo\Ver6memo.txt" />
     <Text Include="Res\memo\Ver7memo.txt" />
+    <Text Include="Res\Shader\Tutorial4.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Entity.cpp" />
     <ClCompile Include="Src\GLFWEW.cpp" />
     <ClCompile Include="Src\Main.cpp" />
     <ClCompile Include="Src\Mesh.cpp" />

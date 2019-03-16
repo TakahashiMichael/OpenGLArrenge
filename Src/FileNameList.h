@@ -20,10 +20,12 @@
 #define FILENAME_VERT_TUTORIAL "Res/Shader/Tutorial.vert"
 #define FILENAME_VERT_TUTORIAL2 "Res/Shader/Tutorial2.vert"
 #define FILENAME_VERT_TUTORIAL3 "Res/Shader/Tutorial3.vert"
+#define FILENAME_VERT_TUTORIAL4 "Res/Shader/Tutorial4.vert"
 
 #define FILENAME_FRAG_TUTORIAL "Res/Shader/Tutorial.frag"
 #define FILENAME_FRAG_TUTORIAL2 "Res/Shader/Tutorial2.frag"
 #define FILENAME_FRAG_TUTORIAL3 "Res/Shader/Tutorial3.frag"
+#define FILENAME_FRAG_TUTORIAL4 "Res/Shader/Tutorial4.frag"
 
 
 //BMP

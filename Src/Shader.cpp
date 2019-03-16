@@ -269,4 +269,10 @@ namespace Shader {
 		}
 	}
 
+	void Program::DebugPring()const {
+		std::cout << "シェーダーの番号を表示" << (int)program << std::endl;
+
+	}
+
+
 }

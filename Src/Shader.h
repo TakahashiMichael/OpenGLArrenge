@@ -26,7 +26,7 @@ namespace Shader {
 		bool UniformBlockBinding(const UniformBuffer&);
 		void UseProgram();
 		void BindTexture(GLenum unit,GLenum type,GLuint texture);
-
+		void DebugPring()const;
 	private:
 		Program() = default;
 		~Program();

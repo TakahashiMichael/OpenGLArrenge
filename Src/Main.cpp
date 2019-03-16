@@ -6,6 +6,9 @@
 #include "OffscreenBuffer.h"
 #include "UniformBuffer.h"
 #include "Mesh.h"
+#include "Entity.h"
+#include <random>
+
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
@@ -49,6 +52,9 @@ const GLuint indices[] = {
 struct VertexData
 {
 	glm::mat4 matMVP;
+	glm::mat4 matModel = glm::mat4(1);
+	glm::mat3x4 matNormal;
+	glm::vec4 color;
 
 };
 const int maxLightCount = 4; ///< ライトの数.
@@ -76,6 +82,8 @@ enum BindingPoint
 {
 	BINDINGPOINT_VERTEXDATA, ///< 頂点シェーダ用パラメータのバインディングポイント.
 	BINDINGPOINT_LIGHTDATA, ///< ライティングパラメータ用のバインディングポイント.
+	BINDINGPOINT_VERTEXDATA_TEST, ///< 頂点シェーダ用パラメータのバインディングポイント.
+	BINDINGPOINT_LIGHTDATA_TEST, ///< ライティングパラメータ用のバインディングポイント.
 };
 
 /**
@@ -198,6 +206,70 @@ GLuint CreateVAO(GLuint vbo,GLuint ibo) {
 	return vao;
 
 }
+/**
+* 敵の円盤の状態を更新する.
+*/
+struct UpdateToroid
+{
+	explicit UpdateToroid(const Entity::BufferPtr& buffer) : entityBuffer(buffer) {}
+
+	void operator()(Entity::Entity& entity, void* ubo, double delta,
+		const glm::mat4& matView, const glm::mat4& matProj)
+	{
+		// 範囲外に出たら削除する.
+		const glm::vec3 pos = entity.Position();
+		if (std::abs(pos.x) > 40.0f || std::abs(pos.z) > 40.0f) {
+			entityBuffer->RemoveEntity(&entity);
+			return;
+		}
+
+		// 円盤を回転させる.
+		float rot = glm::angle(entity.Rotation());
+		rot += glm::radians(15.0f) * static_cast<float>(delta);
+		if (rot > glm::pi<float>() * 2.0f) {
+			rot -= glm::pi<float>() * 2.0f;
+		}
+		entity.Rotation(glm::angleAxis(rot, glm::vec3(0, 1, 0)));
+
+		// 頂点シェーダーのパラメータをUBOにコピーする.
+		VertexData data;
+		data.matModel = entity.CalcModelMatrix();
+		data.matNormal = glm::mat4_cast(entity.Rotation());
+		data.matMVP = matProj * matView * data.matModel;
+		data.color = entity.Color();
+		memcpy(ubo, &data, sizeof(VertexData));
+	}
+
+	Entity::BufferPtr entityBuffer;
+};
+/**
+* ゲームの状態を更新する.
+*
+* @param entityBuffer 敵エンティティ追加先のエンティティバッファ.
+* @param meshBuffer   敵エンティティのメッシュを管理しているメッシュバッファ.
+* @param tex          敵エンティティ用のテクスチャ.
+* @param prog         敵エンティティ用のシェーダープログラム.
+*/
+void Update(Entity::BufferPtr entityBuffer, Mesh::BufferPtr meshBuffer,
+	TexturePtr tex, Shader::ProgramPtr prog)
+{
+	static std::mt19937 rand(std::random_device{}());
+	static double interval = 0;
+
+	interval -= 1.0 / 60.0;
+	if (interval <= 0) {
+		const std::uniform_real_distribution<float> posXRange(-15, 15);
+		const glm::vec3 pos(posXRange(rand), 0, 40);
+		const Mesh::MeshPtr& mesh = meshBuffer->GetMesh("Toroid");
+		if (Entity::Entity* p = entityBuffer->AddEntity(pos, mesh, tex, prog,
+			UpdateToroid(entityBuffer))) {
+			p->Velocity(glm::vec3(pos.x < 0 ? 0.1f : -0.1f, 0, -1.0f));
+		}
+		const std::uniform_real_distribution<double> intervalRange(3.0, 6.0);
+		interval = intervalRange(rand);
+	}
+}
+
 
 /**
 * Uniform Block Objectを作成する.
@@ -303,14 +375,22 @@ int main()
 	const GLuint ibo = CreateIBO(sizeof(indices),indices);
 	const GLuint vao = CreateVAO(vbo,ibo);
 	const UniformBufferPtr uboVertex = UniformBuffer::Create(
-		sizeof(VertexData),BINDINGPOINT_VERTEXDATA,"VertexData");
+		sizeof(VertexData), BINDINGPOINT_VERTEXDATA_TEST, "VertexData");
 	const UniformBufferPtr uboLight = UniformBuffer::Create(
-		sizeof(LightData),BINDINGPOINT_LIGHTDATA,"LightData");
+		sizeof(LightData), BINDINGPOINT_LIGHTDATA_TEST, "LightData");
+	const UniformBufferPtr uboVertexScreen = UniformBuffer::Create(
+		sizeof(VertexData), BINDINGPOINT_VERTEXDATA, "VertexData");
+	const UniformBufferPtr uboLightScreen = UniformBuffer::Create(
+		sizeof(LightData), BINDINGPOINT_LIGHTDATA, "LightData");
+
 
 	const Shader::ProgramPtr progTutorial =
-		Shader::Program::Create(FILENAME_VERT_TUTORIAL3,FILENAME_FRAG_TUTORIAL3);
+		Shader::Program::Create(FILENAME_VERT_TUTORIAL4,FILENAME_FRAG_TUTORIAL4);
+	const Shader::ProgramPtr progScreen=
+		Shader::Program::Create(FILENAME_VERT_TUTORIAL3, FILENAME_FRAG_TUTORIAL3);
 
-	if (!vbo || !vao ||!ibo|| !uboVertex || !uboLight || !progTutorial) {
+
+	if (!vbo || !vao ||!ibo|| !uboVertex || !uboLight || !progTutorial || !progScreen) {
 
 		return 1;
 	}
@@ -330,8 +410,18 @@ int main()
 	Mesh::BufferPtr meshBuffer = Mesh::Buffer::Create(50000, 50000);
 	meshBuffer->LoadMeshFromFile(FILENAME_FBX_TOROID);
 
+	Entity::BufferPtr entityBuffer = Entity::Buffer::Create(1024,
+		sizeof(VertexData), BINDINGPOINT_VERTEXDATA_TEST, "VertexData");
+	if (!entityBuffer) {
+		return 1;
+		
+	}
+
+
 	progTutorial->UniformBlockBinding(*uboVertex);
 	progTutorial->UniformBlockBinding(*uboLight);
+	progScreen->UniformBlockBinding(*uboVertexScreen);
+	progScreen->UniformBlockBinding(*uboLightScreen);
 	GLint maxubosize;
 	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS,&maxubosize);
 	std::cout << "設定できるUBOのバインディングポイントの数を表示:" << (size_t)maxubosize << std::endl;
@@ -346,36 +436,53 @@ int main()
 
 		glEnable(GL_DEPTH_TEST);
 
-		progTutorial->UseProgram();
+		progScreen->UseProgram();
 		// 座標変換行列を作成してシェーダに転送する.
+		const glm::vec3 viewPos = glm::vec4(0, 10, -20, 1);
 		const glm::mat4x4 matProj =
-			glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+			glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 500.0f);
 		const glm::mat4x4 matView =
-			glm::lookAt(glm::vec3(2, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+			glm::lookAt(viewPos, glm::vec3(0, 0, 20), glm::vec3(0, 1, 0));
 		const glm::mat4x4 matMVP = matProj * matView;
 		//注意点.UseProgram()で対象プログラムが設定されていないとダメ.
 		VertexData vertexData;
 		vertexData.matMVP = matProj * matView;
-		uboVertex->BufferSubData(&vertexData);
+		vertexData.color = glm::vec4(1, 1, 1, 1);
+		uboVertexScreen->BufferSubData(&vertexData);
 
 		LightData lightData;
 		lightData.ambientColor = glm::vec4(0.05f, 0.1f, 0.2f, 1);
 		lightData.light[0].position = glm::vec4(1, 1, 1, 1);
-		lightData.light[0].color = glm::vec4(2, 2, 2, 1);
+		lightData.light[0].color = glm::vec4(1, 1, 1, 1);
+		lightData.light[1].position = glm::vec4(-0.2f, 0, 0.6f, 1);
+		lightData.light[1].color = glm::vec4(0.125f, 0.125f, 0.05f, 1);
+		uboLightScreen->BufferSubData(&lightData);
+
+
+		progScreen->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,tex->Id());
+
+
+		glBindVertexArray(vao);
+		glDrawElements(GL_TRIANGLES,renderingParts[0].size,GL_UNSIGNED_INT,renderingParts[0].offset);
+		progScreen->BindTexture(GL_TEXTURE0, GL_TEXTURE_2D, texToroid->Id());
+		meshBuffer->BindVAO();
+		meshBuffer->GetMesh("Toroid")->Draw(meshBuffer);
+
+		Update(entityBuffer, meshBuffer, texToroid, progTutorial);
+
+		entityBuffer->Update(1.0 / 60.0, matView, matProj);
+
+		progTutorial->UseProgram();
+		lightData.ambientColor = glm::vec4(0.05f, 0.1f, 0.2f, 1);
+		lightData.light[0].position = glm::vec4(1, 1, 1, 1);
+		lightData.light[0].color = glm::vec4(1, 1, 1, 1);
 		lightData.light[1].position = glm::vec4(-0.2f, 0, 0.6f, 1);
 		lightData.light[1].color = glm::vec4(0.125f, 0.125f, 0.05f, 1);
 		uboLight->BufferSubData(&lightData);
 
 
-		progTutorial->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,tex->Id());
+		entityBuffer->Draw(meshBuffer);
 
-
-		glBindVertexArray(vao);
-		glDrawElements(GL_TRIANGLES,renderingParts[0].size,GL_UNSIGNED_INT,renderingParts[0].offset);
-
-		progTutorial->BindTexture(GL_TEXTURE0, GL_TEXTURE_2D, texToroid->Id());
-		meshBuffer->BindVAO();
-		meshBuffer->GetMesh("Toroid")->Draw(meshBuffer);
 		glBindVertexArray(vao);
 
 
@@ -383,16 +490,17 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 		glClearColor(0.1f, 0.3f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		progTutorial->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
+		progScreen->UseProgram();
+		progScreen->BindTexture(GL_TEXTURE0,GL_TEXTURE_2D,offscreen->GetTexture());
 			
 		vertexData = {};
 		vertexData.matMVP = glm::mat4(1);
-		uboVertex->BufferSubData(&vertexData);
+
+		uboVertexScreen->BufferSubData(&vertexData);
 
 		lightData = {};
 		lightData.ambientColor = glm::vec4(1);
-		uboLight->BufferSubData(&lightData);
+		uboLightScreen->BufferSubData(&lightData);
 
 
 		glDrawElements(
