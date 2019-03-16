@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "OffscreenBuffer.h"
 #include "UniformBuffer.h"
+#include "Mesh.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
@@ -307,19 +308,28 @@ int main()
 		sizeof(LightData),BINDINGPOINT_LIGHTDATA,"LightData");
 
 	const Shader::ProgramPtr progTutorial =
-		Shader::Program::Create(FILENAME_VERT_TUTORIAL2,FILENAME_FRAG_TUTORIAL2);
+		Shader::Program::Create(FILENAME_VERT_TUTORIAL3,FILENAME_FRAG_TUTORIAL3);
 
 	if (!vbo || !vao ||!ibo|| !uboVertex || !uboLight || !progTutorial) {
+
 		return 1;
 	}
 
 
 	TexturePtr tex = Texture::LoadFromFile(FILENAME_TGA_BACK);
 	TexturePtr tex2 = Texture::LoadFromFile(FILENAME_BMP_GEAR);
-	if (!tex ||!tex2) {
-	return 1;
+	TexturePtr texToroid = Texture::LoadFromFile(FILENAME_BMP_TOROID);
+	if (!tex ||!tex2 || !texToroid) {
+		std::cout << "‚Ä‚­‚·‚¿‚áŽ¸”s";
+
+		return 1;
 	
 	}
+
+
+	Mesh::BufferPtr meshBuffer = Mesh::Buffer::Create(50000, 50000);
+	meshBuffer->LoadMeshFromFile(FILENAME_FBX_TOROID);
+
 	progTutorial->UniformBlockBinding(*uboVertex);
 	progTutorial->UniformBlockBinding(*uboLight);
 	GLint maxubosize;
@@ -362,6 +372,12 @@ int main()
 
 		glBindVertexArray(vao);
 		glDrawElements(GL_TRIANGLES,renderingParts[0].size,GL_UNSIGNED_INT,renderingParts[0].offset);
+
+		progTutorial->BindTexture(GL_TEXTURE0, GL_TEXTURE_2D, texToroid->Id());
+		meshBuffer->BindVAO();
+		meshBuffer->GetMesh("Toroid")->Draw(meshBuffer);
+		glBindVertexArray(vao);
+
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER,0);

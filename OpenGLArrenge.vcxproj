@@ -136,6 +136,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Res\memo\Tutorial3.frag" />
+    <None Include="Res\memo\Tutorial3.vert" />
     <None Include="Res\Shader\Tutorial.frag" />
     <None Include="Res\Shader\Tutorial.vert" />
     <None Include="Res\Shader\Tutorial2.frag" />
@@ -145,6 +147,7 @@
     <ClInclude Include="Src\FileNameList.h" />
     <ClInclude Include="Src\GamePad.h" />
     <ClInclude Include="Src\GLFWEW.h" />
+    <ClInclude Include="Src\Mesh.h" />
     <ClInclude Include="Src\OffscreenBuffer.h" />
     <ClInclude Include="Src\Shader.h" />
     <ClInclude Include="Src\Texture.h" />
@@ -159,10 +162,12 @@
     <Text Include="Res\memo\Ver4memo.txt" />
     <Text Include="Res\memo\Ver5memo.txt" />
     <Text Include="Res\memo\Ver6memo.txt" />
+    <Text Include="Res\memo\Ver7memo.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\GLFWEW.cpp" />
     <ClCompile Include="Src\Main.cpp" />
+    <ClCompile Include="Src\Mesh.cpp" />
     <ClCompile Include="Src\OffscreenBuffer.cpp" />
     <ClCompile Include="Src\Shader.cpp" />
     <ClCompile Include="Src\Texture.cpp" />

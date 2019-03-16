@@ -40,6 +40,12 @@
     <None Include="Res\Shader\Tutorial2.vert">
       <Filter>リソース ファイル\Shader</Filter>
     </None>
+    <None Include="Res\memo\Tutorial3.vert">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
+    <None Include="Res\memo\Tutorial3.frag">
+      <Filter>リソース ファイル\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\FileNameList.h">
@@ -61,6 +67,9 @@
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Src\UniformBuffer.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Mesh.h">
       <Filter>System</Filter>
     </ClInclude>
   </ItemGroup>
@@ -89,6 +98,9 @@
     <Text Include="Res\memo\Ver6memo.txt">
       <Filter>リソース ファイル\Memo</Filter>
     </Text>
+    <Text Include="Res\memo\Ver7memo.txt">
+      <Filter>リソース ファイル\Memo</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Main.cpp">
@@ -107,6 +119,9 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Src\UniformBuffer.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Mesh.cpp">
       <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
