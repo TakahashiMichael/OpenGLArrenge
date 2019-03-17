@@ -31,12 +31,14 @@
 //BMP
 #define FILENAME_BMP_GEAR "Res/Texture/Gear.bmp"
 #define FILENAME_BMP_TOROID "Res/Texture/Toroid.bmp"
+#define FILENAME_BMP_PLAYER "Res/Texture/Player.bmp"
 
 //TGA
 #define FILENAME_TGA_BACK "Res/Texture/TitleBack.tga"
 
 //FBX
 #define FILENAME_FBX_TOROID "Res/Model/Toroid.fbx"
+#define FILENAME_FBX_PLAYER "Res/Model/Player.fbx"
 
 
 #endif // !FILENAMELIST_H_INCLUDED
